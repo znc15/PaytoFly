@@ -1,6 +1,5 @@
 package org.littlesheep.utils;
 
-import org.bukkit.scheduler.BukkitRunnable;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -11,17 +10,16 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.util.stream.Collectors;
 
 public class UpdateChecker {
     private final paytofly plugin;
-    private final String currentVersion;
     private static final String GITHUB_API_URL = 
         "https://api.github.com/repos/znc15/paytofly/releases";
     private String latestVersion;
 
     public UpdateChecker(paytofly plugin) {
         this.plugin = plugin;
-        this.currentVersion = plugin.getDescription().getVersion();
     }
 
     public String getLatestVersion() {
@@ -29,82 +27,63 @@ public class UpdateChecker {
     }
 
     public void checkForUpdates() {
-        if (!plugin.getConfig().getBoolean("update-checker.enabled", true)) {
-            return;
-        }
+        plugin.getLogger().info("正在检查更新...");
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                URL url = new URI(GITHUB_API_URL).toURL();
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setRequestProperty("Accept", "application/vnd.github.v3+json");
 
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                try {
-                    URL url = URI.create(GITHUB_API_URL).toURL();
-                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                    conn.setRequestMethod("GET");
-                    conn.setConnectTimeout(5000);
-                    
-                    if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                        BufferedReader reader = new BufferedReader(
-                            new InputStreamReader(conn.getInputStream())
-                        );
-                        StringBuilder response = new StringBuilder();
-                        String line;
-                        
-                        while ((line = reader.readLine()) != null) {
-                            response.append(line);
-                        }
-                        reader.close();
+                if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                    BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(connection.getInputStream())
+                    );
+                    String response = reader.lines().collect(Collectors.joining());
+                    reader.close();
 
-                        JSONParser parser = new JSONParser();
-                        JSONArray releases = (JSONArray) parser.parse(response.toString());
-                        
-                        if (!releases.isEmpty()) {
-                            JSONObject latestRelease = (JSONObject) releases.get(0);
-                            String rawVersion = (String) latestRelease.get("tag_name");
-                            plugin.getLogger().info("获取到的原始版本号: " + rawVersion);
+                    JSONArray releases = (JSONArray) new JSONParser().parse(response);
+
+                    if (!releases.isEmpty()) {
+                        boolean foundSnapshot = false;
+                        for (Object obj : releases) {
+                            JSONObject release = (JSONObject) obj;
+                            String tagName = ((String) release.get("tag_name"))
+                                .replace("v", "")
+                                .replace("build", "")
+                                .trim();
                             
-                            latestVersion = rawVersion.replace("v", "")
-                                                    .replace("build", "")
-                                                    .trim();
-                            plugin.getLogger().info("处理后的版本号: " + latestVersion);
-                            plugin.getLogger().info("当前版本号: " + plugin.getDescription().getVersion());
-                            
-                            if (!latestVersion.matches("\\d+(\\.\\d+)*")) {
-                                plugin.getLogger().warning("无法解析版本号格式");
-                                return;
-                            }
+                            if (tagName.contains("SNAPSHOT")) {
+                                foundSnapshot = true;
+                                latestVersion = tagName;
+                                String currentVersion = plugin.getDescription().getVersion();
+                                
+                                plugin.getLogger().info("获取到的原始版本号: " + tagName);
+                                plugin.getLogger().info("当前版本号: " + currentVersion);
 
-                            String mainCurrentVersion = currentVersion.split("-")[0];
-                            String mainLatestVersion = latestVersion.split("-")[0];
-
-                            new BukkitRunnable() {
-                                @Override
-                                public void run() {
-                                    if (mainCurrentVersion.equals(mainLatestVersion)) {
-                                        plugin.getLogger().info("插件已是最新版本！");
-                                    } else {
-                                        plugin.getLogger().warning("发现新版本！");
-                                        plugin.getLogger().warning("当前版本: " + mainCurrentVersion);
-                                        plugin.getLogger().warning("最新版本: " + mainLatestVersion);
-                                        plugin.getLogger().warning(
-                                            "下载地址: https://github.com/znc15/paytofly/releases"
-                                        );
-                                    }
+                                if (!currentVersion.equals(latestVersion)) {
+                                    plugin.getLogger().warning("发现新版本！");
+                                    plugin.getLogger().warning("当前版本: " + currentVersion);
+                                    plugin.getLogger().warning("最新版本: " + latestVersion);
+                                    plugin.getLogger().warning(
+                                        "下载地址: https://github.com/znc15/paytofly/releases"
+                                    );
+                                } else {
+                                    plugin.getLogger().info("当前已是最新版本！");
                                 }
-                            }.runTask(plugin);
-                        }
-                    }
-                } catch (Exception e) {
-                    new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            plugin.getLogger().warning("无法检查更新！");
-                            if (plugin.getConfig().getBoolean("update-checker.debug", false)) {
-                                e.printStackTrace();
+                                break;
                             }
                         }
-                    }.runTask(plugin);
+                        if (!foundSnapshot) {
+                            plugin.getLogger().info("未找到正式版本信息");
+                        }
+                    } else {
+                        plugin.getLogger().info("未获取到版本信息");
+                    }
                 }
+            } catch (Exception e) {
+                plugin.getLogger().warning("检查更新失败: " + e.getMessage());
             }
-        }.runTaskAsynchronously(plugin);
+        });
     }
 } 
