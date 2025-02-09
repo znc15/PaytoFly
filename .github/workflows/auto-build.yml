@@ -1,0 +1,48 @@
+name: Auto Build PayToFly
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'pom.xml'
+      - '.github/workflows/**'
+  workflow_dispatch:      # 允许手动触发
+
+jobs:
+  auto-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
+    
+    - name: Build with Maven
+      run: mvn -B package --file pom.xml
+    
+    - name: Generate build number
+      id: buildnumber
+      run: |
+        echo "build_number=$(date +'%Y%m%d')-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        echo "build_date=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: build-${{ steps.buildnumber.outputs.build_number }}
+        name: Auto Build ${{ steps.buildnumber.outputs.build_number }}
+        body: |
+          自动构建版本 ${{ steps.buildnumber.outputs.build_number }}
+          构建时间：${{ steps.buildnumber.outputs.build_date }}
+          
+          触发提交：${{ github.sha }}
+        files: target/PayToFly-*.jar
+        prerelease: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
