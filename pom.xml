@@ -71,6 +71,10 @@
               <pattern>com.mysql</pattern>
               <shadedPattern>org.littlesheep.paytofly.libs.mysql</shadedPattern>
             </relocation>
+            <relocation>
+              <pattern>org.bstats</pattern>
+              <shadedPattern>org.littlesheep.paytofly.libs.bstats</shadedPattern>
+            </relocation>
           </relocations>
         </configuration>
         <executions>
