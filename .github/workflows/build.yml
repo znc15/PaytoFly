@@ -3,15 +3,19 @@ name: Build PayToFly
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  release:
-    types: [ created ]
+    paths:
+      - 'src/**'
+      - 'pom.xml'
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    
     steps:
     - uses: actions/checkout@v3
     
@@ -25,26 +29,27 @@ jobs:
     - name: Build with Maven
       run: mvn -B package --file pom.xml
     
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: PayToFly
-        path: target/PayToFly-*.jar
-
-  release:
-    needs: build
-    if: github.event_name == 'release'
-    runs-on: ubuntu-latest
+    - name: List target directory
+      run: ls -la target/
     
-    steps:
-    - name: Download build artifacts
-      uses: actions/download-artifact@v3
-      with:
-        name: PayToFly
+    - name: Generate build number
+      id: buildnumber
+      run: |
+        echo "build_number=$(date +'%Y%m%d')-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        echo "build_date=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
     
-    - name: Upload Release Asset
+    - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
-        files: PayToFly-*.jar
+        tag_name: build-${{ steps.buildnumber.outputs.build_number }}
+        name: Build ${{ steps.buildnumber.outputs.build_number }}
+        body: |
+          构建版本 ${{ steps.buildnumber.outputs.build_number }}
+          构建时间：${{ steps.buildnumber.outputs.build_date }}
+          
+          触发提交：${{ github.sha }}
+        files: |
+          target/*.jar
+        prerelease: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
