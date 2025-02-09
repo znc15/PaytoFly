@@ -41,7 +41,7 @@ public class FlightExpansion extends PlaceholderExpansion {
         if (params.equals("time_left")) {
             Long endTime = plugin.getFlyingPlayers().get(player.getUniqueId());
             if (endTime == null || endTime < System.currentTimeMillis()) {
-                return plugin.getLang().getMessage("time-format.expired");
+                return plugin.getLang("time-format.expired");
             }
             return TimeFormatter.formatTime(endTime - System.currentTimeMillis());
         }
