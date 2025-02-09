@@ -1,0 +1,52 @@
+# GUI 设置
+settings:
+  title: "&b&l飞行商店"
+  size: 27 # GUI大小（必须是9的倍数）
+  fill-empty: true # 是否用装饰物填充空位
+  fill-material: BLACK_STAINED_GLASS_PANE # 装饰物材质
+
+# 商品设置
+items:
+  hour:
+    slot: 10 # 位置 (0-26)
+    material: CLOCK # 物品材质
+    name: "&e&l1小时"
+    lore:
+      - "&7点击购买1小时飞行时间"
+      - "&7价格: &6{cost} &7金币"
+      - ""
+      - "&a➜ 点击购买"
+    command: "fly 1h"
+
+  day:
+    slot: 12
+    material: SUNFLOWER
+    name: "&e&l1天"
+    lore:
+      - "&7点击购买1天飞行时间"
+      - "&7价格: &6{cost} &7金币"
+      - ""
+      - "&a➜ 点击购买"
+    command: "fly 1d"
+
+  week:
+    slot: 14
+    material: DIAMOND
+    name: "&e&l1周"
+    lore:
+      - "&7点击购买1周飞行时间"
+      - "&7价格: &6{cost} &7金币"
+      - ""
+      - "&a➜ 点击购买"
+    command: "fly 1w"
+
+  month:
+    slot: 16
+    material: NETHER_STAR
+    name: "&e&l1个月"
+    lore:
+      - "&7点击购买1个月飞行时间"
+      - "&7价格: &6{cost} &7金币"
+      - ""
+      - "&a➜ 点击购买"
+    command: "fly 1M" 

@@ -1,0 +1,92 @@
+messages:
+  # 系统消息
+  plugin-loading: "&b正在启动 PayToFly 插件..."
+  plugin-enabled: "&aPayToFly插件启动完成！"
+  plugin-disabled: "&c插件已禁用！"
+  economy-init: "&e正在初始化经济系统..."
+  economy-success: "&a经济系统初始化成功！"
+  economy-failed: "&c经济系统初始化失败！请确保已安装Vault和经济插件。"
+  storage-init: "&e正在初始化存储系统..."
+  storage-success: "&a存储系统初始化成功！（类型：{type}）"
+  data-loaded: "&a已加载 {count} 条飞行数据"
+  config-checking: "&e正在检查配置文件..."
+  config-not-found: "&e未找到配置文件，正在创建默认配置..."
+  config-updating: "&e配置文件版本不匹配，正在更新..."
+  config-backup: "&a已将旧配置文件备份为 config.yml.bak"
+  config-updated: "&a配置文件已更新到最新版本"
+  config-reloaded: "&a配置文件和语言文件已重载！"
+  checking-players: "&e正在检查在线玩家的飞行状态..."
+  check-complete: "&a检查完成！检查了 {checked} 个玩家，更新了 {updated} 个玩家的飞行状态"
+  papi-hooked: "&a已成功挂钩 PlaceholderAPI！"
+
+  # 命令消息
+  prefix: "&7[&bPayToFly&7] "
+  command-player-only: "&c该命令只能由玩家执行！"
+  command-usage: "&c用法: /fly <时长><单位> 或 /fly help 或 /fly disable <玩家名>"
+  no-permission: "&c你没有权限使用该命令！"
+  invalid-time-format: "&c无效的时间格式！请使用数字+单位，例如: 5h, 3d, 2w, 1M"
+  time-too-large: "&c购买时长过长！最大允许: {max}{unit}"
+  time-too-small: "&c购买时长过短！最小允许: {min}{unit}"
+  purchase-details: "&e购买 &6{duration} &e需要 &6{amount} &e金币"
+  insufficient-money: "&c余额不足！需要 {amount} 金币。"
+  purchase-success: "&a已支付 {amount} 金币，获得 {duration} 的飞行能力！"
+  already-flying: "&c你已经拥有飞行能力了！剩余时间：{time}"
+  flight-disabled-by-admin: "&c管理员已关闭了你的飞行权限！"
+  admin-disabled-flight: "&a已关闭玩家 {player} 的飞行权限"
+  flight-restored: "&a已恢复你的飞行能力！剩余时间：{time}"
+
+  # 帮助菜单
+  help-title: "&6=== PayToFly 帮助 ==="
+  help-commands:
+    - "&e/fly help &7- &f显示帮助信息"
+    - "&e/fly <时长><单位> &7- &f购买飞行时间"
+    - "&e/fly disable <玩家名> &7- &f关闭玩家的飞行权限 &c(管理员)"
+    - "&e/fly reload &7- &f重载配置文件 &c(管理员)"
+  help-time-units:
+    - "&b时长单位说明:"
+    - "&am - 分钟 (例如: /fly 30m)"
+    - "&ah - 小时 (例如: /fly 5h)"
+    - "&ad - 天 (例如: /fly 3d)"
+    - "&aw - 周 (例如: /fly 2w)"
+    - "&aM - 月 (例如: /fly 1M)"
+  help-footer: "&b====================="
+  help-shop: "&e/fly &7- 打开飞行商店"
+  help-time: "&e/fly time &7- 查看剩余飞行时间"
+  help-help: "&e/fly help &7- 显示此帮助信息"
+  help-reload: "&e/fly reload &7- 重载插件配置"
+
+  # 飞行状态消息
+  bossbar-title: "&e&l飞行时间: &6&l{time}"
+  flight-ending-soon: "&c&l飞行能力即将在 {time} 后结束！"
+  flight-expired: "&c您的飞行权限已过期，请重新购买。"
+  time-remaining: "&e剩余时间: &6{time}"
+
+  # 时间单位
+  time-format:
+    minute: "分钟"
+    hour: "小时"
+    day: "天"
+    week: "周"
+    month: "月"
+    expired: "已过期"
+  player-not-found: "&c找不到玩家：{player}"
+
+  # 新添加的消息
+  metrics-enabled: "&a已启用 bStats 数据统计"
+  metrics-disabled: "&e已禁用 bStats 数据统计"
+  flight-expired-with-time: "&c&l你的飞行能力已于 {time} 过期！"
+  flight-restored-with-time: "&a您的飞行权限还剩 &e{remaining}"
+
+  # GUI 相关
+  gui-title: "&b&l飞行商店"
+  gui-item-name: "&e&l{time}{unit}"
+  gui-item-lore:
+    - "&7点击购买"
+    - "&7价格: &6{cost} &7金币"
+    - ""
+    - "&a➜ 点击购买"
+
+  # 新添加的消息
+  time-check-no-permission: "&c您还没有购买过飞行权限。"
+  time-check-remaining: "&a您的飞行权限将在 &e{time} &a到期\n&7剩余时间: &e{remaining}"
+  time-check-expired: "&c您的飞行权限已过期，请重新购买。" 

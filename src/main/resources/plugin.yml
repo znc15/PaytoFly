@@ -1,0 +1,26 @@
+name: PayToFly
+version: '${project.version}'
+main: org.littlesheep.paytofly
+api-version: '1.13'
+depend: [Vault, Essentials]
+softdepend: [PlaceholderAPI]
+commands:
+  fly:
+    description: 飞行命令
+    usage: /<command> [time]
+    aliases: [paytofly]
+authors: [LittleSheep]
+website: https://www.littlesheep.cc
+
+permissions:
+  paytofly.use:
+    description: 允许使用基础飞行命令
+    default: true
+  paytofly.infinite:
+    description: 允许无限飞行
+    default: op
+  paytofly.admin:
+    description: 管理员权限
+    default: op
+    children:
+      paytofly.infinite: true

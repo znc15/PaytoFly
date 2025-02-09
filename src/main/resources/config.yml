@@ -1,0 +1,81 @@
+# 语言设置
+language: zh_CN
+
+# 飞行费用设置
+fly-cost:
+  minute: 10.0    # 每分钟的价格
+  hour: 100.0     # 每小时的价格
+  day: 1000.0     # 每天的价格
+  week: 5000.0    # 每周的价格
+  month: 15000.0  # 每月的价格
+
+# 时间限制设置
+time-limits:
+  minute:
+    min: 5
+    max: 60
+  hour:
+    min: 1
+    max: 24
+  day:
+    min: 1
+    max: 7
+  week:
+    min: 1
+    max: 4
+  month:
+    min: 1
+    max: 12
+
+# 提示设置
+notifications:
+  bossbar:
+    enabled: true
+    # 提前多少秒显示BossBar (0 = 一直显示)
+    show-before: 15
+    # 支持的颜色: BLUE, GREEN, PINK, PURPLE, RED, WHITE, YELLOW
+    colors:
+      normal: GREEN
+      warning: RED
+    # 支持的样式: SOLID, SEGMENTED_6, SEGMENTED_10, SEGMENTED_12, SEGMENTED_20
+    style: SEGMENTED_20
+    # 是否显示进度条
+    show-progress: true
+  chat:
+    enabled: true
+    # 聊天框提醒间隔（秒）
+    reminder-interval: 5
+    # 开始提醒的时间（秒）
+    warning-time: 15
+
+# 存储设置
+storage:
+  # 存储类型: JSON, SQLITE, MYSQL
+  type: JSON
+  
+  # MySQL 设置 (仅在 type: MYSQL 时使用)
+  mysql:
+    host: localhost
+    port: 3306
+    database: minecraft
+    username: root
+    password: password
+    table: paytofly_data
+
+  # SQLite 设置 (仅在 type: SQLITE 时使用)
+  sqlite:
+    file: database.db
+
+# bStats 设置
+metrics:
+  enabled: true  # 是否启用数据统计
+
+# 更新检查设置
+update-checker:
+  enabled: true    # 是否启用更新检查
+  debug: false     # 是否显示详细错误信息
+
+# 时间计算方式
+time-calculation:
+  # 可选: REAL_TIME (现实时间) 或 PLAY_TIME (游戏时间)
+  mode: "REAL_TIME"
