@@ -46,6 +46,12 @@
         <artifactId>maven-shade-plugin</artifactId>
         <version>3.5.1</version>
         <configuration>
+          <relocations>
+            <relocation>
+              <pattern>org.bstats</pattern>
+              <shadedPattern>org.littlesheep.paytofly.libs.bstats</shadedPattern>
+            </relocation>
+          </relocations>
           <filters>
             <filter>
               <artifact>*:*</artifact>
@@ -53,29 +59,10 @@
                 <exclude>META-INF/*.SF</exclude>
                 <exclude>META-INF/*.DSA</exclude>
                 <exclude>META-INF/*.RSA</exclude>
-                <exclude>META-INF/MANIFEST.MF</exclude>
-                <exclude>META-INF/versions/9/module-info.class</exclude>
-                <exclude>classpath.index</exclude>
-              </excludes>
-            </filter>
-            <filter>
-              <artifact>me.clip:placeholderapi</artifact>
-              <excludes>
-                <exclude>config.yml</exclude>
-                <exclude>plugin.yml</exclude>
               </excludes>
             </filter>
           </filters>
-          <relocations>
-            <relocation>
-              <pattern>com.mysql</pattern>
-              <shadedPattern>org.littlesheep.paytofly.libs.mysql</shadedPattern>
-            </relocation>
-            <relocation>
-              <pattern>org.bstats</pattern>
-              <shadedPattern>org.littlesheep.paytofly.libs.bstats</shadedPattern>
-            </relocation>
-          </relocations>
+          <minimizeJar>true</minimizeJar>
         </configuration>
         <executions>
           <execution>
