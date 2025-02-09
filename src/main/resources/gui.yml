@@ -14,6 +14,7 @@ items:
     lore:
       - "&7点击购买1小时飞行时间"
       - "&7价格: &6{cost} &7金币"
+      - "&7最低购买时间: &6{min_time}{unit}"
       - ""
       - "&a➜ 点击购买"
     command: "fly 1h"
@@ -25,6 +26,7 @@ items:
     lore:
       - "&7点击购买1天飞行时间"
       - "&7价格: &6{cost} &7金币"
+      - "&7最低购买时间: &6{min_time}{unit}"
       - ""
       - "&a➜ 点击购买"
     command: "fly 1d"
@@ -36,6 +38,7 @@ items:
     lore:
       - "&7点击购买1周飞行时间"
       - "&7价格: &6{cost} &7金币"
+      - "&7最低购买时间: &6{min_time}{unit}"
       - ""
       - "&a➜ 点击购买"
     command: "fly 1w"
@@ -47,6 +50,18 @@ items:
     lore:
       - "&7点击购买1个月飞行时间"
       - "&7价格: &6{cost} &7金币"
+      - "&7最低购买时间: &6{min_time}{unit}"
       - ""
       - "&a➜ 点击购买"
-    command: "fly 1M" 
+    command: "fly 1M"
+
+custom-time:
+  enabled: true
+  slot: 22
+  item: CLOCK
+  name: "&e自定义购买时间"
+  lore:
+    - "&7点击后在聊天框输入"
+    - "&7想要购买的时间（分钟）"
+    - "&7每分钟 &6%price% &7金币"
+  use-main-config-price: true 
