@@ -1,85 +1,112 @@
 messages:
   # System Messages
-  plugin-loading: "&bLoading PayToFly plugin..."
-  plugin-enabled: "&aPayToFly plugin enabled successfully!"
-  plugin-disabled: "&cPlugin disabled!"
+  plugin-loading: "&bInitializing PayToFly plugin..."
+  plugin-enabled: "&aPayToFly plugin has been enabled!"
+  plugin-disabled: "&cPlugin has been disabled!"
   economy-init: "&eInitializing economy system..."
   economy-success: "&aEconomy system initialized successfully!"
-  economy-failed: "&cEconomy initialization failed! Please ensure Vault and an economy plugin are installed."
+  economy-failed: "&cEconomy system initialization failed! Please ensure Vault and an economy plugin are installed."
   storage-init: "&eInitializing storage system..."
   storage-success: "&aStorage system initialized successfully! (Type: {type})"
-  data-loaded: "&aLoaded {count} flight records"
+  data-loaded: "&aLoaded {count} flight data records"
   config-checking: "&eChecking configuration file..."
-  config-not-found: "&eConfiguration file not found, creating default..."
-  config-updating: "&eConfiguration version mismatch, updating..."
-  config-backup: "&aOld configuration backed up as config.yml.bak"
-  config-updated: "&aConfiguration file updated to latest version"
-  config-reloaded: "&aConfiguration and language files reloaded!"
-  checking-players: "&eChecking online players' flight status..."
-  check-complete: "&aCheck complete! Checked {checked} players, updated {updated} flight states"
+  config-not-found: "&eConfiguration file not found, creating default config..."
+  config-updating: "&eConfig version mismatch, updating..."
+  config-backup: "&aOld config file backed up as config.yml.bak"
+  config-updated: "&aConfiguration file has been updated to the latest version"
+  config-reloaded: "&aConfiguration and language files have been reloaded!"
+  checking-players: "&eChecking flight status of online players..."
+  check-complete: "&aCheck complete! Checked {checked} players, updated flight status for {updated} players"
   papi-hooked: "&aSuccessfully hooked into PlaceholderAPI!"
-  metrics-enabled: "&abStats metrics enabled"
-  metrics-disabled: "&ebStats metrics disabled"
 
   # Command Messages
   prefix: "&7[&bPayToFly&7] "
   command-player-only: "&cThis command can only be executed by players!"
   command-usage: "&cUsage: /fly <duration><unit> or /fly help or /fly disable <player>"
   no-permission: "&cYou don't have permission to use this command!"
-  invalid-time-format: "&cInvalid time format! Use number+unit, e.g., 5h, 3d, 2w, 1M"
-  time-too-large: "&cDuration too long! Maximum allowed: {max}{unit}"
-  time-too-small: "&cDuration too short! Minimum allowed: {min}{unit}"
-  purchase-details: "&ePurchase &6{duration} &efor &6{amount} &ecoins"
+  invalid-time-format: "&cInvalid time format! Use number+unit, e.g.: 5h, 3d, 2w, 1M"
+  time-too-large: "&cPurchase duration too long! Maximum allowed: {max}{unit}"
+  time-too-small: "&cPurchase duration too short! Minimum allowed: {min}{unit}"
+  purchase-details: "&ePurchasing &6{duration} &ewill cost &6{amount} &ecoins"
   insufficient-money: "&cInsufficient balance! Need {amount} coins."
   purchase-success: "&aPaid {amount} coins for {duration} of flight ability!"
   already-flying: "&cYou already have flight ability! Time remaining: {time}"
-  flight-disabled-by-admin: "&cAn admin has disabled your flight ability!"
-  admin-disabled-flight: "&aDisabled flight ability for player {player}"
-  flight-restored: "&aRestored your flight ability! Time remaining: {time}"
+  flight-disabled-by-admin: "&cAn admin has disabled your flight permissions!"
+  admin-disabled-flight: "&aDisabled flight permissions for player {player}"
+  flight-restored: "&aYour flight ability has been restored! Time remaining: {time}"
 
   # Help Menu
   help-title: "&6=== PayToFly Help ==="
-  help-shop: "&e/fly &7- Open flight shop"
-  help-time: "&e/fly time &7- Check remaining flight time"
-  help-help: "&e/fly help &7- Show this help message"
-  help-reload: "&e/fly reload &7- Reload plugin configuration"
   help-commands:
     - "&e/fly help &7- &fShow help information"
     - "&e/fly <duration><unit> &7- &fPurchase flight time"
     - "&e/fly disable <player> &7- &fDisable player's flight &c(Admin)"
     - "&e/fly reload &7- &fReload configuration &c(Admin)"
   help-time-units:
-    - "&bTime Units:"
-    - "&am - minutes (e.g., /fly 30m)"
-    - "&ah - hours (e.g., /fly 5h)"
-    - "&ad - days (e.g., /fly 3d)"
-    - "&aw - weeks (e.g., /fly 2w)"
-    - "&aM - months (e.g., /fly 1M)"
+    - "&bTime Unit Guide:"
+    - "&am - Minutes (e.g.: /fly 30m)"
+    - "&ah - Hours (e.g.: /fly 5h)"
+    - "&ad - Days (e.g.: /fly 3d)"
+    - "&aw - Weeks (e.g.: /fly 2w)"
+    - "&aM - Months (e.g.: /fly 1M)"
   help-footer: "&b====================="
+  help-shop: "&e/fly &7- Open flight shop"
+  help-time: "&e/fly time &7- Check remaining flight time"
+  help-help: "&e/fly help &7- Display this help message"
+  help-reload: "&e/fly reload &7- Reload plugin configuration"
 
   # Flight Status Messages
   bossbar-title: "&e&lFlight Time: &6&l{time}"
-  flight-ending-soon: "&c&lFlight ability ending in {time}!"
-  flight-expired: "&c&lYour flight ability has expired!"
+  flight-ending-soon: "&c&lFlight ability will end in {time}!"
+  flight-expired: "&cYour flight permission has expired. Please purchase again."
   time-remaining: "&eTime remaining: &6{time}"
 
   # Time Units
   time-format:
-    minute: "minutes"
-    hour: "hours"
-    day: "days"
-    week: "weeks"
-    month: "months"
+    minute: "minute"
+    hour: "hour"
+    day: "day"
+    week: "week"
+    month: "month"
     expired: "expired"
   player-not-found: "&cPlayer not found: {player}"
+
+  # New Messages
+  metrics-enabled: "&abStats metrics enabled"
+  metrics-disabled: "&ebStats metrics disabled"
   flight-expired-with-time: "&c&lYour flight ability expired at {time}!"
-  flight-restored-with-time: "&aFlight ability restored! Expires at: &e{remaining}"
+  flight-restored-with-time: "&aYour flight permission has &e{remaining} &aremaining"
 
   # GUI Related
   gui-title: "&b&lFlight Shop"
-  gui-item-name: "&e&l{time} {unit}"
+  gui-item-name: "&e&l{time}{unit}"
   gui-item-lore:
     - "&7Click to purchase"
-    - "&7Cost: &6{cost} &7coins"
+    - "&7Price: &6{cost} &7coins"
     - ""
-    - "&a➜ Click to buy" 
+    - "&a➜ Click to buy"
+
+  # Custom Time Purchase
+  custom-time:
+    success: "&aSuccessfully purchased {minutes} minutes of flight time!"
+    cost: "&7Deducted &6{amount} &7coins"
+    insufficient-funds: "&cInsufficient funds! Need {amount} coins"
+    invalid-number: "&cPlease enter a valid number!"
+    must-positive: "&cPlease enter a number greater than 0!"
+  time-too-short: "&cPurchase time cannot be less than %min% %type%!"
+
+  # Flight Permission Notifications
+  time-check-no-permission: "&cYou haven't purchased flight permissions yet."
+  time-check-remaining: "&aYour flight permission has &e{remaining} &aremaining"
+  time-check-expired: "&cYour flight permission has expired. Please purchase again."
+
+  # Time Limit Messages
+  time-limit: "&cMinimum purchase time is {min} minutes, maximum is {max} minutes"
+
+  # Creative Mode Flight
+  creative:
+    flight-enabled: "&aYou are in creative mode, flight mode automatically enabled"
+    flight-disabled: "&cFlight in creative mode has been disabled"
+
+  survival:
+    flight-disabled: "&cYou are in survival mode, please purchase flight time or use creative mode"
