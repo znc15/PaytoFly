@@ -89,6 +89,11 @@ settings:
   infinite-flight: true
   # 是否在禁飞世界中禁用无限飞行权限
   disable-infinite-in-restricted: true
+  # 每分钟的价格
+  price-per-minute: 100.0
+  creative:
+    allow-flight: true    # 是否允许创造模式玩家飞行
+    bypass-permission: "paytofly.creative.bypass"  # 绕过创造模式飞行限制的权限
 
 worlds:
   # 这些世界不需要购买就能飞行
