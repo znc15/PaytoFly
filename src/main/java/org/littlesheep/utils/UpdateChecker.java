@@ -17,10 +17,15 @@ public class UpdateChecker {
     private final String currentVersion;
     private static final String GITHUB_API_URL = 
         "https://api.github.com/repos/znc15/paytofly/releases";
+    private String latestVersion;
 
     public UpdateChecker(paytofly plugin) {
         this.plugin = plugin;
         this.currentVersion = plugin.getDescription().getVersion();
+    }
+
+    public String getLatestVersion() {
+        return latestVersion;
     }
 
     public void checkForUpdates() {
@@ -54,10 +59,20 @@ public class UpdateChecker {
                         
                         if (!releases.isEmpty()) {
                             JSONObject latestRelease = (JSONObject) releases.get(0);
-                            String latestVersion = ((String) latestRelease.get("tag_name"))
-                                .replace("v", "");
+                            String rawVersion = (String) latestRelease.get("tag_name");
+                            plugin.getLogger().info("获取到的原始版本号: " + rawVersion);
                             
-                            // 解析版本号，只保留主版本号（例如：1.0.0-SNAPSHOT 变为 1.0.0）
+                            latestVersion = rawVersion.replace("v", "")
+                                                    .replace("build", "")
+                                                    .trim();
+                            plugin.getLogger().info("处理后的版本号: " + latestVersion);
+                            plugin.getLogger().info("当前版本号: " + plugin.getDescription().getVersion());
+                            
+                            if (!latestVersion.matches("\\d+(\\.\\d+)*")) {
+                                plugin.getLogger().warning("无法解析版本号格式");
+                                return;
+                            }
+
                             String mainCurrentVersion = currentVersion.split("-")[0];
                             String mainLatestVersion = latestVersion.split("-")[0];
 

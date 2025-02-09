@@ -39,7 +39,7 @@ public class LanguageManager {
             // 检查版本和完整性
             try {
                 YamlConfiguration existingConfig = YamlConfiguration.loadConfiguration(langFile);
-                double fileVersion = existingConfig.getDouble("language-version", 0.0);
+                double fileVersion = existingConfig.getDouble("language-version", 1.0);
                 
                 // 检查是否有缺失的语言键
                 InputStream defaultLangStream = plugin.getResource("lang/" + language + ".yml");
