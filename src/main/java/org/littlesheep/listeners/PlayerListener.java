@@ -52,8 +52,13 @@ public class PlayerListener implements Listener {
         Player player = event.getPlayer();
         
         if (event.getNewGameMode() == GameMode.CREATIVE) {
-            // 如果切换到创造模式,直接发送飞行已启用的消息
-            player.sendMessage(plugin.getPrefix() + plugin.getLang("messages.creative.flight-enabled"));
+            // 检查创造模式飞行权限
+            boolean canFlyInCreative = checkCreativeFlight(player);
+            if (canFlyInCreative) {
+                player.sendMessage(plugin.getPrefix() + plugin.getLang("messages.creative.flight-enabled"));
+            } else {
+                player.sendMessage(plugin.getPrefix() + plugin.getLang("messages.creative.flight-disabled"));
+            }
         } else {
             // 如果切换到其他模式,检查飞行时间或无限飞行权限
             if (!player.hasPermission("paytofly.infinite")) {

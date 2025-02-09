@@ -50,7 +50,11 @@ messages:
     - "&ad - 天 (例如: /fly 3d)"
     - "&aw - 周 (例如: /fly 2w)"
     - "&aM - 月 (例如: /fly 1M)"
-  : "&b====================="
+  help-footer: "&b====================="
+  help-shop: "&e/fly &7- 打开飞行商店"
+  help-time: "&e/fly time &7- 查看剩余飞行时间"
+  help-help: "&e/fly help &7- 显示此帮助信息"
+  help-reload: "&e/fly reload &7- 重载插件配置"
 
   # 飞行状态消息
   bossbar-title: "&e&l飞行时间: &6&l{time}"
