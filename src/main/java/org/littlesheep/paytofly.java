@@ -5,6 +5,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -25,7 +26,11 @@ import org.littlesheep.utils.UpdateChecker;
 import org.littlesheep.utils.TimeManager;
 import org.littlesheep.utils.ConfigChecker;
 import org.littlesheep.listeners.WorldChangeListener;
+import org.littlesheep.commands.FlyCommandTabCompleter;
+import org.littlesheep.utils.CustomTimeManager;
+import org.bukkit.ChatColor;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -44,6 +49,9 @@ public final class paytofly extends JavaPlugin {
     private UpdateChecker updateChecker;
     private TimeManager timeManager;
     private ConfigChecker configChecker;
+    private CustomTimeManager customTimeManager;
+    private FileConfiguration messageConfig;
+    private FileConfiguration langConfig;
 
     @Override
     public void onEnable() {
@@ -72,10 +80,7 @@ public final class paytofly extends JavaPlugin {
         // 延迟初始化Vault
         getServer().getScheduler().runTaskLater(this, () -> {
             if (!setupEconomy()) {
-                getLogger().severe("未找到Vault插件或经济系统！插件将被禁用！");
-                getLogger().severe("请确保：");
-                getLogger().severe("1. Vault插件已正确安装");
-                getLogger().severe("2. 已安装经济插件（如EssentialsX）");
+                getLogger().severe("未找到 Vault 插件，插件将被禁用！");
                 getServer().getPluginManager().disablePlugin(this);
                 return;
             }
@@ -115,8 +120,9 @@ public final class paytofly extends JavaPlugin {
         // 注册事件监听器
         getServer().getPluginManager().registerEvents(new PlayerListener(this, storage), this);
         
-        // 注册命令
+        // 注册命令和补全器
         getCommand("fly").setExecutor(this);
+        getCommand("fly").setTabCompleter(new FlyCommandTabCompleter());
         
         // 注册监听器
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(this), this);
@@ -148,8 +154,13 @@ public final class paytofly extends JavaPlugin {
         // 注册世界切换监听器
         getServer().getPluginManager().registerEvents(new WorldChangeListener(this), this);
         
+        customTimeManager = new CustomTimeManager(this);
+        getServer().getPluginManager().registerEvents(customTimeManager, this);
+        
         getLogger().info("PayToFly插件启动完成！");
         getLogger().info("插件已经是完全体了喵 Ciallo～(∠・ω< )⌒★");
+        
+        loadMessageConfig();
     }
 
     @Override
@@ -225,7 +236,11 @@ public final class paytofly extends JavaPlugin {
                 return true;
             }
 
-            if (args[0].equalsIgnoreCase("reload") && player.hasPermission("paytofly.admin")) {
+            if (args[0].equalsIgnoreCase("reload")) {
+                if (!player.hasPermission("paytofly.admin")) {
+                    player.sendMessage(prefix + lang.getMessage("no-permission"));
+                    return true;
+                }
                 // 重载配置文件
                 reloadConfig();
                 config = getConfig();
@@ -386,17 +401,9 @@ public final class paytofly extends JavaPlugin {
     }
 
     private boolean setupEconomy() {
-        if (getServer().getPluginManager().getPlugin("Vault") == null) {
-            getLogger().warning("未找到Vault插件！");
-            return false;
-        }
-        
+        if (getServer().getPluginManager().getPlugin("Vault") == null) return false;
         RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
-        if (rsp == null) {
-            getLogger().warning("未找到经济系统服务！");
-            return false;
-        }
-        
+        if (rsp == null) return false;
         econ = rsp.getProvider();
         return econ != null;
     }
@@ -433,8 +440,13 @@ public final class paytofly extends JavaPlugin {
         return prefix;
     }
 
-    public LanguageManager getLang() {
-        return lang;
+    public String getLang(String path) {
+        String message = langConfig.getString(path);
+        if (message == null) {
+            getLogger().warning("找不到语言键: " + path);
+            message = path;
+        }
+        return ChatColor.translateAlternateColorCodes('&', message);
     }
 
     public CountdownManager getCountdownManager() {
@@ -455,6 +467,14 @@ public final class paytofly extends JavaPlugin {
 
     public UpdateChecker getUpdateChecker() {
         return updateChecker;
+    }
+
+    public CustomTimeManager getCustomTimeManager() {
+        return customTimeManager;
+    }
+
+    public Economy getEconomy() {
+        return econ;
     }
 
     private void setupMetrics() {
@@ -488,5 +508,36 @@ public final class paytofly extends JavaPlugin {
             }
             return count;
         }));
+    }
+
+    public void loadMessageConfig() {
+        File langFolder = new File(getDataFolder(), "lang");
+        if (!langFolder.exists()) {
+            langFolder.mkdirs();
+        }
+
+        String language = getConfig().getString("language", "zh_CN");
+        File langFile = new File(langFolder, language + ".yml");
+        
+        if (!langFile.exists()) {
+            try {
+                saveResource("lang/" + language + ".yml", false);
+            } catch (IllegalArgumentException e) {
+                getLogger().warning("无法找到语言文件: " + language + ".yml");
+                getLogger().warning("使用默认语言文件...");
+                saveResource("lang/zh_CN.yml", false);
+                langFile = new File(langFolder, "zh_CN.yml");
+            }
+        }
+        
+        langConfig = YamlConfiguration.loadConfiguration(langFile);
+    }
+    
+    public FileConfiguration getMessageConfig() {
+        return messageConfig;
+    }
+
+    public LanguageManager getLang() {
+        return this.lang;
     }
 }
