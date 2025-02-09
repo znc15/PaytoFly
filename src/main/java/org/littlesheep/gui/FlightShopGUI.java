@@ -5,11 +5,14 @@ import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.littlesheep.paytofly;
+import org.bukkit.ChatColor;
+import org.bukkit.event.Listener;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,7 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class FlightShopGUI {
+public class FlightShopGUI implements Listener {
     private final paytofly plugin;
     private FileConfiguration guiConfig;
     private String guiTitle;
@@ -28,6 +31,7 @@ public class FlightShopGUI {
     public FlightShopGUI(paytofly plugin) {
         this.plugin = plugin;
         this.slotCommands = new HashMap<>();
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);  // 注册监听器
         
         // 加载GUI配置
         File guiFile = new File(plugin.getDataFolder(), "gui.yml");
@@ -86,14 +90,18 @@ public class FlightShopGUI {
             String name = guiConfig.getString(path + "name", "").replace("&", "§");
             List<String> lore = new ArrayList<>();
             
-            // 获取物品价格
+            // 获取物品价格和时间信息
             String command = guiConfig.getString(path + "command", "").split(" ")[1];
+            String timeUnit = command.substring(command.length() - 1);
             double cost = getCost(command);
+            int minTime = plugin.getConfig().getInt("time-limits." + getTimeUnitName(timeUnit) + ".min", 1);
             
             // 处理lore
             for (String line : guiConfig.getStringList(path + "lore")) {
                 lore.add(line.replace("&", "§")
-                           .replace("{cost}", String.format("%.2f", cost)));
+                           .replace("{cost}", String.format("%.2f", cost))
+                           .replace("{min_time}", String.valueOf(minTime))
+                           .replace("{unit}", getTimeUnitDisplay(timeUnit)));
             }
 
             ItemStack item = createItem(material, name, lore);
@@ -113,6 +121,8 @@ public class FlightShopGUI {
                 }
             }
         }
+
+        createCustomTimeItem(gui);
 
         player.openInventory(gui);
     }
@@ -158,6 +168,101 @@ public class FlightShopGUI {
         if (command != null) {
             player.closeInventory();
             player.performCommand(command);
+        }
+    }
+
+    private void createCustomTimeItem(Inventory inv) {
+        if (!guiConfig.getBoolean("custom-time.enabled", true)) return;
+        
+        ItemStack customTimeItem = new ItemStack(Material.valueOf(guiConfig.getString("custom-time.item", "CLOCK")));
+        ItemMeta meta = customTimeItem.getItemMeta();
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', 
+            guiConfig.getString("custom-time.name", "&e自定义购买时间")));
+        
+        List<String> lore = new ArrayList<>();
+        double pricePerMinute = plugin.getConfig().getDouble("fly-cost.minute", 10.0);
+        for (String line : guiConfig.getStringList("custom-time.lore")) {
+            lore.add(ChatColor.translateAlternateColorCodes('&', 
+                line.replace("%price%", String.valueOf(pricePerMinute))));
+        }
+        
+        meta.setLore(lore);
+        customTimeItem.setItemMeta(meta);
+        inv.setItem(guiConfig.getInt("custom-time.slot", 22), customTimeItem);
+    }
+
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event) {
+        if (!event.getView().getTitle().equals(guiTitle)) return;
+        event.setCancelled(true);
+        
+        if (event.getCurrentItem() == null) return;
+        if (!(event.getWhoClicked() instanceof Player)) return;
+        
+        Player player = (Player) event.getWhoClicked();
+        int slot = event.getSlot();
+        
+        if (slot == guiConfig.getInt("custom-time.slot", 22)) {
+            double pricePerMinute = plugin.getConfig().getDouble("fly-cost.minute", 10.0);
+            int minMinutes = plugin.getConfig().getInt("time-limits.minute.min", 5);
+            player.closeInventory();
+            player.sendMessage(plugin.getPrefix() + "§e请在聊天框中输入想要购买的时间（分钟）");
+            player.sendMessage(plugin.getPrefix() + "§7每分钟需要 §6" + pricePerMinute + " §7金币");
+            player.sendMessage(plugin.getPrefix() + "§7最低购买时间: §6" + minMinutes + " §7分钟");
+            player.sendMessage(plugin.getPrefix() + "§7示例: §e输入 §6" + minMinutes + " §e购买 §6" + minMinutes + "分钟 §e飞行时间，需要 §6" + 
+                (pricePerMinute * minMinutes) + " §e金币");
+            plugin.getCustomTimeManager().waitForInput(player);
+            return;
+        }
+        
+        String command = slotCommands.get(slot);
+        if (command != null) {
+            // 检查时间限制
+            String[] cmdParts = command.split(" ");
+            if (cmdParts.length >= 2) {
+                String timeArg = cmdParts[1];
+                String timeUnit = timeArg.substring(timeArg.length() - 1);
+                int amount;
+                try {
+                    amount = Integer.parseInt(timeArg.substring(0, timeArg.length() - 1));
+                    
+                    // 获取对应时间单位的最小值
+                    int minTime = plugin.getConfig().getInt("time-limits." + getTimeUnitName(timeUnit) + ".min", 1);
+                    
+                    if (amount < minTime) {
+                        String message = plugin.getLang().getMessage("min-time-limit")
+                            .replace("{amount}", String.valueOf(minTime))
+                            .replace("{unit}", getTimeUnitDisplay(timeUnit));
+                        player.sendMessage(plugin.getPrefix() + message);
+                        return;
+                    }
+                } catch (NumberFormatException e) {
+                    return;
+                }
+            }
+            
+            player.closeInventory();
+            player.performCommand(command);
+        }
+    }
+
+    private String getTimeUnitName(String unit) {
+        switch (unit) {
+            case "h": return "hour";
+            case "d": return "day";
+            case "w": return "week";
+            case "M": return "month";
+            default: return "minute";
+        }
+    }
+
+    private String getTimeUnitDisplay(String unit) {
+        switch (unit) {
+            case "h": return "小时";
+            case "d": return "天";
+            case "w": return "周";
+            case "M": return "月";
+            default: return "分钟";
         }
     }
 } 
