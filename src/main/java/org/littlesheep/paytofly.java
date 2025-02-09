@@ -5,7 +5,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -24,17 +23,14 @@ import org.littlesheep.listeners.GUIListener;
 import org.littlesheep.utils.VersionManager;
 import org.littlesheep.utils.UpdateChecker;
 import org.littlesheep.utils.TimeManager;
+import org.littlesheep.utils.ConfigChecker;
+import org.littlesheep.listeners.WorldChangeListener;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 public final class paytofly extends JavaPlugin {
-    private static final double CONFIG_VERSION = 1.0;
     private Economy econ;
     private Map<UUID, Long> flyingPlayers = new HashMap<>();
     private FileConfiguration config;
@@ -47,9 +43,20 @@ public final class paytofly extends JavaPlugin {
     private VersionManager versionManager;
     private UpdateChecker updateChecker;
     private TimeManager timeManager;
+    private ConfigChecker configChecker;
 
     @Override
     public void onEnable() {
+        // 初始化配置检查器
+        configChecker = new ConfigChecker(this);
+        
+        // 检查配置文件
+        if (!configChecker.checkConfig()) {
+            getLogger().severe("配置文件检查失败！插件将被禁用！");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        
         // 初始化版本管理器
         versionManager = new VersionManager(this);
         
@@ -57,13 +64,6 @@ public final class paytofly extends JavaPlugin {
         lang = new LanguageManager(this, getConfig().getString("language", "zh_CN"));
         
         getLogger().info(lang.getMessage("plugin-loading"));
-        
-        // 检查配置文件
-        if (!checkConfig()) {
-            getLogger().severe("配置文件检查失败！插件将被禁用！");
-            getServer().getPluginManager().disablePlugin(this);
-            return;
-        }
         
         config = getConfig();
         prefix = config.getString("messages.prefix", "&7[&bPayToFly&7] ").replace("&", "§");
@@ -145,44 +145,11 @@ public final class paytofly extends JavaPlugin {
         
         this.timeManager = new TimeManager(this);
         
+        // 注册世界切换监听器
+        getServer().getPluginManager().registerEvents(new WorldChangeListener(this), this);
+        
         getLogger().info("PayToFly插件启动完成！");
-    }
-
-    private boolean checkConfig() {
-        getLogger().info("正在检查配置文件...");
-        if (!getDataFolder().exists()) {
-            getDataFolder().mkdirs();
-        }
-
-        File configFile = new File(getDataFolder(), "config.yml");
-        if (!configFile.exists()) {
-            getLogger().info("未找到配置文件，正在创建默认配置...");
-            saveDefaultConfig();
-            return true;
-        }
-
-        YamlConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
-        double version = currentConfig.getDouble("config-version", 0.0);
-        
-        if (version != CONFIG_VERSION) {
-            getLogger().info("配置文件版本不匹配，正在更新...");
-            try {
-                // 备份旧配置
-                File backupFile = new File(getDataFolder(), "config.yml.bak");
-                Files.copy(configFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                getLogger().info("已将旧配置文件备份为 config.yml.bak");
-                
-                // 保存新配置
-                configFile.delete();
-                saveDefaultConfig();
-                getLogger().info("配置文件已更新到最新版本");
-            } catch (IOException e) {
-                getLogger().severe("更新配置文件时出错：" + e.getMessage());
-                return false;
-            }
-        }
-        
-        return true;
+        getLogger().info("插件已经是完全体了喵 Ciallo～(∠・ω< )⌒★");
     }
 
     @Override
@@ -484,6 +451,10 @@ public final class paytofly extends JavaPlugin {
 
     public TimeManager getTimeManager() {
         return timeManager;
+    }
+
+    public UpdateChecker getUpdateChecker() {
+        return updateChecker;
     }
 
     private void setupMetrics() {

@@ -79,3 +79,25 @@ update-checker:
 time-calculation:
   # 可选: REAL_TIME (现实时间) 或 PLAY_TIME (游戏时间)
   mode: "REAL_TIME"
+
+settings:
+  # 默认飞行状态
+  default-fly: false
+  # 管理员加入提示更新
+  admin-update-notice: true
+  # 是否启用无限飞行权限
+  infinite-flight: true
+  # 是否在禁飞世界中禁用无限飞行权限
+  disable-infinite-in-restricted: true
+
+worlds:
+  # 这些世界不需要购买就能飞行
+  free-fly:
+    - "creative"
+    - "lobby"
+  # 这些世界禁止飞行（即使购买了也不能飞）
+  disabled:
+    - "pvp"
+    - "minigames"
+  # 是否在进入禁飞世界时发送提示
+  notify-on-enter: true

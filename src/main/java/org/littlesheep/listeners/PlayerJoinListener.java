@@ -55,6 +55,24 @@ public class PlayerJoinListener implements Listener {
                 }
             }
         }, 1L);
+
+        // 检查是否为管理员且配置允许提示更新
+        if (player.hasPermission("paytofly.admin") && 
+            plugin.getConfig().getBoolean("settings.admin-update-notice", true)) {
+            
+            // 使用异步任务检查更新
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+                String latestVersion = plugin.getUpdateChecker().getLatestVersion();
+                String currentVersion = plugin.getDescription().getVersion();
+                
+                if (latestVersion != null && !currentVersion.equals(latestVersion)) {
+                    player.sendMessage(plugin.getPrefix() + "§e发现新版本！");
+                    player.sendMessage(plugin.getPrefix() + "§e当前版本: §f" + currentVersion);
+                    player.sendMessage(plugin.getPrefix() + "§e最新版本: §f" + latestVersion);
+                    player.sendMessage(plugin.getPrefix() + "§e下载地址: §fhttps://github.com/znc15/paytofly/releases");
+                }
+            });
+        }
     }
 
     private String formatDuration(long milliseconds) {
