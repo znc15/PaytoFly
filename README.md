@@ -52,7 +52,7 @@
 - PlaceholderAPI (可选，变量支持)
 
 ## 支持的版本
-
+- 需要Java16及以上版本
 - Minecraft 1.20.x
 - Minecraft 1.19.x
 - Minecraft 1.18.x
