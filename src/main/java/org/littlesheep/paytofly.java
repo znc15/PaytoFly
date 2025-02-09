@@ -252,6 +252,39 @@ public final class paytofly extends JavaPlugin {
                 return true;
             }
 
+            if (args[0].equalsIgnoreCase("bypass")) {
+                if (!player.hasPermission("paytofly.admin")) {
+                    player.sendMessage(prefix + lang.getMessage("no-permission"));
+                    return true;
+                }
+                
+                if (args.length < 2) {
+                    player.sendMessage(prefix + "§c用法: /fly bypass <玩家名> [remove]");
+                    return true;
+                }
+                
+                Player target = getServer().getPlayer(args[1]);
+                if (target == null) {
+                    player.sendMessage(prefix + lang.getMessage("player-not-found", "{player}", args[1]));
+                    return true;
+                }
+                
+                if (args.length >= 3 && args[2].equalsIgnoreCase("remove")) {
+                    // 移除绕过权限
+                    getServer().dispatchCommand(getServer().getConsoleSender(), 
+                        "lp user " + target.getName() + " permission unset paytofly.bypass");
+                    player.sendMessage(prefix + "§a已移除玩家 " + target.getName() + " 的飞行绕过权限");
+                    target.sendMessage(prefix + "§c您的飞行绕过权限已被移除");
+                } else {
+                    // 添加绕过权限
+                    getServer().dispatchCommand(getServer().getConsoleSender(), 
+                        "lp user " + target.getName() + " permission set paytofly.bypass true");
+                    player.sendMessage(prefix + "§a已给予玩家 " + target.getName() + " 飞行绕过权限");
+                    target.sendMessage(prefix + "§a您已获得飞行绕过权限");
+                }
+                return true;
+            }
+
             // 解析时间格式
             String timeArg = args[0].toLowerCase();
             if (!timeArg.matches("\\d+[mhdwM]")) {
@@ -410,9 +443,10 @@ public final class paytofly extends JavaPlugin {
 
     private void sendHelpMessage(Player player) {
         player.sendMessage(prefix + lang.getMessage("help-title"));
-        player.sendMessage(prefix + lang.getMessage("help-shop"));
-        player.sendMessage(prefix + lang.getMessage("help-time"));
-        player.sendMessage(prefix + lang.getMessage("help-help"));
+        player.sendMessage(prefix + lang.getMessage("help-commands"));
+        player.sendMessage(prefix + lang.getMessage("help-footer"));
+        player.sendMessage(prefix + lang.getMessage("help-time-units"));
+        player.sendMessage(prefix + lang.getMessage("help-footer"));
         if (player.hasPermission("paytofly.admin")) {
             player.sendMessage(prefix + lang.getMessage("help-reload"));
         }
