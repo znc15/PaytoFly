@@ -41,6 +41,7 @@ messages:
     - "&e/fly help &7- &fShow help information"
     - "&e/fly <duration><unit> &7- &fPurchase flight time"
     - "&e/fly disable <player> &7- &fDisable player's flight &c(Admin)"
+    - "&e/fly bypass <player> [remove] &7- &fGive/Remove player flight bypass permission &c(Admin)"
     - "&e/fly reload &7- &fReload configuration &c(Admin)"
   help-time-units:
     - "&bTime Unit Guide:"
@@ -50,10 +51,6 @@ messages:
     - "&aw - Weeks (e.g.: /fly 2w)"
     - "&aM - Months (e.g.: /fly 1M)"
   help-footer: "&b====================="
-  help-shop: "&e/fly &7- Open flight shop"
-  help-time: "&e/fly time &7- Check remaining flight time"
-  help-help: "&e/fly help &7- Display this help message"
-  help-reload: "&e/fly reload &7- Reload plugin configuration"
 
   # Flight Status Messages
   bossbar-title: "&e&lFlight Time: &6&l{time}"

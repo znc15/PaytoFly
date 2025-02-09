@@ -41,6 +41,7 @@ messages:
     - "&e/fly help &7- &f显示帮助信息"
     - "&e/fly <时长><单位> &7- &f购买飞行时间"
     - "&e/fly disable <玩家名> &7- &f关闭玩家的飞行权限 &c(管理员)"
+    - "&e/fly bypass <玩家名> [remove] &7- &f给予/移除玩家飞行绕过权限 &c(管理员)"
     - "&e/fly reload &7- &f重载配置文件 &c(管理员)"
   help-time-units:
     - "&b时长单位说明:"
@@ -49,11 +50,7 @@ messages:
     - "&ad - 天 (例如: /fly 3d)"
     - "&aw - 周 (例如: /fly 2w)"
     - "&aM - 月 (例如: /fly 1M)"
-  help-footer: "&b====================="
-  help-shop: "&e/fly &7- 打开飞行商店"
-  help-time: "&e/fly time &7- 查看剩余飞行时间"
-  help-help: "&e/fly help &7- 显示此帮助信息"
-  help-reload: "&e/fly reload &7- 重载插件配置"
+  : "&b====================="
 
   # 飞行状态消息
   bossbar-title: "&e&l飞行时间: &6&l{time}"
@@ -110,3 +107,11 @@ messages:
 
   survival:
     flight-disabled: "&c您目前是生存模式，请先购买飞行时间或使用创造模式"
+
+  # Bypass 命令相关
+  bypass:
+    usage: "&c用法: /fly bypass <玩家名> [remove]"
+    add-success: "&a已给予玩家 {player} 飞行绕过权限"
+    remove-success: "&a已移除玩家 {player} 的飞行绕过权限"
+    target-add: "&a您已获得飞行绕过权限"
+    target-remove: "&c您的飞行绕过权限已被移除"
