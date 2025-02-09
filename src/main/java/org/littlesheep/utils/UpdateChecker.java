@@ -56,16 +56,20 @@ public class UpdateChecker {
                             JSONObject latestRelease = (JSONObject) releases.get(0);
                             String latestVersion = ((String) latestRelease.get("tag_name"))
                                 .replace("v", "");
+                            
+                            // 解析版本号，只保留主版本号（例如：1.0.0-SNAPSHOT 变为 1.0.0）
+                            String mainCurrentVersion = currentVersion.split("-")[0];
+                            String mainLatestVersion = latestVersion.split("-")[0];
 
                             new BukkitRunnable() {
                                 @Override
                                 public void run() {
-                                    if (currentVersion.equals(latestVersion)) {
+                                    if (mainCurrentVersion.equals(mainLatestVersion)) {
                                         plugin.getLogger().info("插件已是最新版本！");
                                     } else {
                                         plugin.getLogger().warning("发现新版本！");
-                                        plugin.getLogger().warning("当前版本: " + currentVersion);
-                                        plugin.getLogger().warning("最新版本: " + latestVersion);
+                                        plugin.getLogger().warning("当前版本: " + mainCurrentVersion);
+                                        plugin.getLogger().warning("最新版本: " + mainLatestVersion);
                                         plugin.getLogger().warning(
                                             "下载地址: https://github.com/znc15/paytofly/releases"
                                         );
