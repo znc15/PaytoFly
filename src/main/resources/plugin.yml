@@ -24,3 +24,6 @@ permissions:
     default: op
     children:
       paytofly.infinite: true
+  paytofly.creative.bypass:
+    description: 绕过创造模式飞行限制的权限
+    default: op
