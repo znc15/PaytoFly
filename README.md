@@ -29,14 +29,15 @@
 - `/fly time` - 查看剩余飞行时间
 - `/fly help` - 显示帮助信息
 - `/fly reload` - 重载插件配置 (需要权限)
+- `/fly 时间` - 购买飞行时间
+- `/fly bypass 用户名` - 绕过创造模式飞行限制
 
 ## 权限
 
 - `paytofly.use` - 允许使用基础功能
 - `paytofly.infinite` - 无限飞行权限
 - `paytofly.admin` - 管理员权限
-  - 重载配置
-  - 管理其他玩家的飞行权限
+- `paytofly.creative.bypass` - 绕过创造模式飞行限制的权限
 
 ## PlaceholderAPI 变量
 
@@ -65,14 +66,6 @@
 - Minecraft 1.17.x
 - Minecraft 1.16.x
 
-## 配置文件
-
-主要配置文件包括：
-- `config.yml` - 插件主配置
-- `gui.yml` - 商店界面配置
-- `lang/zh_CN.yml` - 中文语言文件
-- `lang/en_US.yml` - 英文语言文件
-
 ## 未来规划
 
 - [ ] 添加更多购买选项
@@ -89,7 +82,6 @@
 
 如果您在使用过程中遇到任何问题，请通过以下方式反馈：
 1. 在 GitHub Issues 中提交问题
-2. 加入我们的交流群
 
 ## 开源协议
 
