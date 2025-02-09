@@ -86,7 +86,28 @@ messages:
     - ""
     - "&a➜ 点击购买"
 
-  # 新添加的消息
+  # 自定义时间购买
+  custom-time:
+    success: "&a成功购买 {minutes} 分钟的飞行时间！"
+    cost: "&7已扣除 &6{amount} &7金币"
+    insufficient-funds: "&c余额不足！需要 {amount} 金币"
+    invalid-number: "&c请输入有效的数字！"
+    must-positive: "&c请输入大于0的数字！"
+  time-too-short: "&c购买时间不能少于 %min% %type%！"
+
+  # 飞行权限通知
   time-check-no-permission: "&c您还没有购买过飞行权限。"
-  time-check-remaining: "&a您的飞行权限将在 &e{time} &a到期\n&7剩余时间: &e{remaining}"
-  time-check-expired: "&c您的飞行权限已过期，请重新购买。" 
+  time-check-remaining: "&a您的飞行权限&7剩余时间: &e{remaining}"
+  time-check-expired: "&c您的飞行权限已过期，请重新购买。"
+
+  # 时间限制提示
+  time-limit: "&c最低购买时间为 {min} 分钟，最高为 {max} 分钟"
+
+  # 创造模式飞行
+  creative:
+    flight-enabled: "&a您处于创造模式，已自动开启飞行模式"
+    flight-disabled: "&c在创造模式下飞行已被禁用"
+
+  survival:
+    flight-disabled: "&c您目前是生存模式，请先购买飞行时间或使用创造模式"
+
