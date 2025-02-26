@@ -48,7 +48,6 @@ public final class paytofly extends JavaPlugin {
     private VersionManager versionManager;
     private UpdateChecker updateChecker;
     private TimeManager timeManager;
-    private ConfigChecker configChecker;
     private CustomTimeManager customTimeManager;
     private FileConfiguration messageConfig;
     private FileConfiguration langConfig;
@@ -56,7 +55,7 @@ public final class paytofly extends JavaPlugin {
     @Override
     public void onEnable() {
         // 初始化配置检查器
-        configChecker = new ConfigChecker(this);
+        ConfigChecker configChecker = new ConfigChecker(this);
         
         // 检查配置文件
         if (!configChecker.checkConfig()) {

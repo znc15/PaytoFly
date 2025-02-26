@@ -54,7 +54,7 @@ public class FlightChecker {
                 player.setAllowFlight(false);
                 player.setFlying(false);
                 String expireTime = endTime != null ? formatTime(endTime) : "未知";
-                player.sendMessage(plugin.getPrefix() + lang.getMessage("flight-expired-with-time", 
+                player.sendMessage(plugin.getPrefix() + lang.getMessage("flight-expired", 
                     "{time}", expireTime));
                 flyingPlayers.remove(uuid);
                 statusChanged = true;
@@ -64,7 +64,7 @@ public class FlightChecker {
             if (!player.getAllowFlight()) {
                 player.setAllowFlight(true);
                 String expireTime = formatTime(endTime);
-                player.sendMessage(plugin.getPrefix() + lang.getMessage("flight-restored-with-time", 
+                player.sendMessage(plugin.getPrefix() + lang.getMessage("flight-restored", 
                     "{time}", expireTime,
                     "{remaining}", TimeFormatter.formatTime(endTime - System.currentTimeMillis())));
                 plugin.getCountdownManager().startCountdown(player, endTime);
