@@ -288,14 +288,23 @@ public final class paytofly extends JavaPlugin {
             }
 
             // 解析时间格式
-            String timeArg = args[0].toLowerCase();
-            if (!timeArg.matches("\\d+[mhdwM]")) {
+            String timeArg = args[0];
+            if (!timeArg.matches("\\d+[mhdw]") && !timeArg.matches("\\d+mo")) {
                 player.sendMessage(prefix + lang.getMessage("invalid-time-format"));
                 return true;
             }
 
-            int amount = Integer.parseInt(timeArg.substring(0, timeArg.length() - 1));
-            char unit = timeArg.charAt(timeArg.length() - 1);
+            int amount;
+            String unit;
+            
+            // 检查是否是月份格式
+            if (timeArg.endsWith("mo")) {
+                amount = Integer.parseInt(timeArg.substring(0, timeArg.length() - 2));
+                unit = "mo";
+            } else {
+                amount = Integer.parseInt(timeArg.substring(0, timeArg.length() - 1));
+                unit = timeArg.substring(timeArg.length() - 1);
+            }
             
             long durationMillis;
             double costPerUnit;
@@ -304,35 +313,35 @@ public final class paytofly extends JavaPlugin {
             int maxLimit;
 
             switch (unit) {
-                case 'm':
+                case "m":
                     durationMillis = amount * 60 * 1000L;
                     costPerUnit = config.getDouble("fly-cost.minute");
                     unitName = lang.getMessage("time-format.minute");
                     minLimit = config.getInt("time-limits.minute.min", 5);
                     maxLimit = config.getInt("time-limits.minute.max", 60);
                     break;
-                case 'h':
+                case "h":
                     durationMillis = amount * 60 * 60 * 1000L;
                     costPerUnit = config.getDouble("fly-cost.hour");
                     unitName = lang.getMessage("time-format.hour");
                     minLimit = config.getInt("time-limits.hour.min", 1);
                     maxLimit = config.getInt("time-limits.hour.max", 24);
                     break;
-                case 'd':
+                case "d":
                     durationMillis = amount * 24 * 60 * 60 * 1000L;
                     costPerUnit = config.getDouble("fly-cost.day");
                     unitName = lang.getMessage("time-format.day");
                     minLimit = config.getInt("time-limits.day.min", 1);
                     maxLimit = config.getInt("time-limits.day.max", 7);
                     break;
-                case 'w':
+                case "w":
                     durationMillis = amount * 7 * 24 * 60 * 60 * 1000L;
                     costPerUnit = config.getDouble("fly-cost.week");
                     unitName = lang.getMessage("time-format.week");
                     minLimit = config.getInt("time-limits.week.min", 1);
                     maxLimit = config.getInt("time-limits.week.max", 4);
                     break;
-                case 'M':
+                case "mo":
                     durationMillis = amount * 30L * 24 * 60 * 60 * 1000L;
                     costPerUnit = config.getDouble("fly-cost.month");
                     unitName = lang.getMessage("time-format.month");
@@ -446,12 +455,10 @@ public final class paytofly extends JavaPlugin {
     private void sendHelpMessage(Player player) {
         player.sendMessage(prefix + lang.getMessage("help-title"));
         player.sendMessage(prefix + lang.getMessage("help-commands"));
-        player.sendMessage(prefix + lang.getMessage("help-footer"));
-        player.sendMessage(prefix + lang.getMessage("help-time-units"));
-        player.sendMessage(prefix + lang.getMessage("help-footer"));
         if (player.hasPermission("paytofly.admin")) {
             player.sendMessage(prefix + lang.getMessage("help-reload"));
         }
+        player.sendMessage(prefix + lang.getMessage("help-footer"));
     }
 
     @Override

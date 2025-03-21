@@ -106,12 +106,20 @@ public class FlightShopGUI implements Listener {
                 }
                 
                 String timeArg = cmdParts[1];
-                if (!timeArg.matches("\\d+[mhdwM]")) {
+                // 检查是否为月份格式或其他有效格式
+                boolean isValidFormat = timeArg.matches("\\d+[mhdw]") || timeArg.matches("\\d+mo");
+                if (!isValidFormat) {
                     plugin.getLogger().warning("无效的时间格式: " + timeArg + " 在 " + path + "command");
                     continue;
                 }
                 
-                String timeUnit = timeArg.substring(timeArg.length() - 1);
+                String timeUnit;
+                if (timeArg.endsWith("mo")) {
+                    timeUnit = "mo";
+                } else {
+                    timeUnit = timeArg.substring(timeArg.length() - 1);
+                }
+                
                 double cost = getCost(timeArg);
                 int minTime = plugin.getConfig().getInt("time-limits." + getTimeUnitName(timeUnit) + ".min", 1);
                 
@@ -152,7 +160,20 @@ public class FlightShopGUI implements Listener {
 
     private double getCost(String timeCommand) {
         try {
-            if (!timeCommand.matches("\\d+[mhdwM]")) {
+            // 检查是否是月份格式
+            if (timeCommand.endsWith("mo")) {
+                String amount = timeCommand.substring(0, timeCommand.length() - 2);
+                try {
+                    int time = Integer.parseInt(amount);
+                    return plugin.getConfig().getDouble("fly-cost.month") * time;
+                } catch (NumberFormatException e) {
+                    plugin.getLogger().warning("无效的时间数值: " + amount + " 在 " + timeCommand);
+                    return 0.0;
+                }
+            }
+            
+            // 处理其他时间单位
+            if (!timeCommand.matches("\\d+[mhdw]")) {
                 plugin.getLogger().warning("无效的时间格式: " + timeCommand);
                 return 0.0;
             }
@@ -168,13 +189,16 @@ public class FlightShopGUI implements Listener {
                 return 0.0;
             }
             
-            switch (lastChar) {
-                case "m": return plugin.getConfig().getDouble("fly-cost.minute") * time;
-                case "h": return plugin.getConfig().getDouble("fly-cost.hour") * time;
-                case "d": return plugin.getConfig().getDouble("fly-cost.day") * time;
-                case "w": return plugin.getConfig().getDouble("fly-cost.week") * time;
-                case "M": return plugin.getConfig().getDouble("fly-cost.month") * time;
-                default: return 0.0;
+            if ("m".equals(lastChar)) {
+                return plugin.getConfig().getDouble("fly-cost.minute") * time;
+            } else if ("h".equals(lastChar)) {
+                return plugin.getConfig().getDouble("fly-cost.hour") * time;
+            } else if ("d".equals(lastChar)) {
+                return plugin.getConfig().getDouble("fly-cost.day") * time;
+            } else if ("w".equals(lastChar)) {
+                return plugin.getConfig().getDouble("fly-cost.week") * time;
+            } else {
+                return 0.0;
             }
         } catch (Exception e) {
             plugin.getLogger().warning("计算价格时出错: " + timeCommand);
@@ -286,14 +310,22 @@ public class FlightShopGUI implements Listener {
                 String[] cmdParts = command.split(" ");
                 if (cmdParts.length >= 2) {
                     String timeArg = cmdParts[1];
-                    if (timeArg.matches("\\d+[mhdwM]")) {
-                        String timeUnit = timeArg.substring(timeArg.length() - 1);
+                    boolean isValidFormat = timeArg.matches("\\d+[mhdw]") || timeArg.matches("\\d+mo");
+                    if (isValidFormat) {
+                        String timeUnit;
                         int amount;
-                        try {
+                        if (timeArg.endsWith("mo")) {
+                            timeUnit = "mo";
+                            amount = Integer.parseInt(timeArg.substring(0, timeArg.length() - 2));
+                        } else {
+                            timeUnit = timeArg.substring(timeArg.length() - 1);
                             amount = Integer.parseInt(timeArg.substring(0, timeArg.length() - 1));
-                            
+                        }
+                        
+                        try {
                             // 获取对应时间单位的最小值
-                            int minTime = plugin.getConfig().getInt("time-limits." + getTimeUnitName(timeUnit) + ".min", 1);
+                            String unitConfigKey = getTimeUnitName(timeUnit);
+                            int minTime = plugin.getConfig().getInt("time-limits." + unitConfigKey + ".min", 1);
                             
                             if (amount < minTime) {
                                 String message = plugin.getLang().getMessage("min-time-limit")
@@ -320,23 +352,34 @@ public class FlightShopGUI implements Listener {
     }
 
     private String getTimeUnitName(String unit) {
-        switch (unit) {
-            case "h": return "hour";
-            case "d": return "day";
-            case "w": return "week";
-            case "M": return "month";
-            default: return "minute";
+        if ("h".equals(unit)) {
+            return "hour";
+        } else if ("d".equals(unit)) {
+            return "day";
+        } else if ("w".equals(unit)) {
+            return "week";
+        } else if ("mo".equals(unit)) {
+            return "month";
+        } else if ("m".equals(unit)) {
+            return "minute";
+        } else {
+            return "minute"; // 默认为分钟
         }
     }
 
     private String getTimeUnitDisplay(String unit) {
-        switch (unit) {
-            case "m": return plugin.getLang().getMessage("time-format.minute");
-            case "h": return plugin.getLang().getMessage("time-format.hour");
-            case "d": return plugin.getLang().getMessage("time-format.day");
-            case "w": return plugin.getLang().getMessage("time-format.week");
-            case "M": return plugin.getLang().getMessage("time-format.month");
-            default: return "";
+        if ("m".equals(unit)) {
+            return plugin.getLang().getMessage("time-format.minute");
+        } else if ("h".equals(unit)) {
+            return plugin.getLang().getMessage("time-format.hour");
+        } else if ("d".equals(unit)) {
+            return plugin.getLang().getMessage("time-format.day");
+        } else if ("w".equals(unit)) {
+            return plugin.getLang().getMessage("time-format.week");
+        } else if ("mo".equals(unit)) {
+            return plugin.getLang().getMessage("time-format.month");
+        } else {
+            return "";
         }
     }
     
@@ -389,7 +432,7 @@ public class FlightShopGUI implements Listener {
                         String[] cmdParts = command.split(" ");
                         if (cmdParts.length < 2) {
                             plugin.getLogger().warning("物品 '" + key + "' 的命令格式无效: " + command);
-                        } else if (!cmdParts[1].matches("\\d+[mhdwM]")) {
+                        } else if (!cmdParts[1].matches("\\d+[mhdw]") && !cmdParts[1].matches("\\d+mo")) {
                             plugin.getLogger().warning("物品 '" + key + "' 的时间格式无效: " + cmdParts[1]);
                         }
                     }

@@ -24,7 +24,7 @@ messages:
   command-player-only: "&c该命令只能由玩家执行！"
   command-usage: "&c用法: /fly <时长><单位> 或 /fly help 或 /fly disable <玩家名>"
   no-permission: "&c你没有权限使用该命令！"
-  invalid-time-format: "&c无效的时间格式！请使用数字+单位，例如: 5h, 3d, 2w, 1M"
+  invalid-time-format: "&c无效的时间格式！请使用数字+单位，例如: 5h, 3d, 2w, 1mo"
   time-too-large: "&c购买时长过长！最大允许: {max}{unit}"
   time-too-small: "&c购买时长过短！最小允许: {min}{unit}"
   purchase-details: "&e购买 &6{duration} &e需要 &6{amount} &e金币"
@@ -38,23 +38,20 @@ messages:
   # 帮助菜单
   help-title: "&6=== PayToFly 帮助 ==="
   help-commands:
+    - "&e/fly &7- &f打开飞行商店"
+    - "&e/fly time &7- &f查看剩余飞行时间"
+    - "&e/fly [时长] &7- &f购买飞行时间"
     - "&e/fly help &7- &f显示帮助信息"
-    - "&e/fly <时长><单位> &7- &f购买飞行时间"
     - "&e/fly disable <玩家名> &7- &f关闭玩家的飞行权限 &c(管理员)"
     - "&e/fly bypass <玩家名> [remove] &7- &f给予/移除玩家飞行绕过权限 &c(管理员)"
     - "&e/fly reload &7- &f重载配置文件 &c(管理员)"
-  help-time-units:
     - "&b时长单位说明:"
     - "&am - 分钟 (例如: /fly 30m)"
     - "&ah - 小时 (例如: /fly 5h)"
     - "&ad - 天 (例如: /fly 3d)"
     - "&aw - 周 (例如: /fly 2w)"
-    - "&aM - 月 (例如: /fly 1M)"
+    - "&aM - 月 (例如: /fly 1mo)"
   help-footer: "&b====================="
-  help-shop: "&e/fly &7- 打开飞行商店"
-  help-time: "&e/fly time &7- 查看剩余飞行时间"
-  help-help: "&e/fly help &7- 显示此帮助信息"
-  help-reload: "&e/fly reload &7- 重载插件配置"
 
   # 飞行状态消息
   bossbar-title: "&e&l飞行时间: &6&l{time}"

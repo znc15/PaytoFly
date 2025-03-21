@@ -53,7 +53,7 @@ items:
       - "&7最低购买时间: &6{min_time}{unit}"
       - ""
       - "&a➜ 点击购买"
-    command: "fly 1M"
+    command: "fly 1mo"
 
 custom-time:
   enabled: true
