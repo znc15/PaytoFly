@@ -247,6 +247,9 @@ public final class paytofly extends JavaPlugin {
                 // 重载语言文件
                 lang = new LanguageManager(this, getConfig().getString("language", "zh_CN"));
                 
+                // 重新初始化GUI
+                shopGUI.reloadConfig();
+                
                 player.sendMessage(prefix + lang.getMessage("config-reloaded"));
                 return true;
             }

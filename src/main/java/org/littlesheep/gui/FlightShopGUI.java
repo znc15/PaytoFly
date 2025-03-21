@@ -258,11 +258,34 @@ public class FlightShopGUI implements Listener {
 
     private String getTimeUnitDisplay(String unit) {
         switch (unit) {
-            case "h": return "小时";
-            case "d": return "天";
-            case "w": return "周";
-            case "M": return "月";
-            default: return "分钟";
+            case "m": return plugin.getLang().getMessage("time-format.minute");
+            case "h": return plugin.getLang().getMessage("time-format.hour");
+            case "d": return plugin.getLang().getMessage("time-format.day");
+            case "w": return plugin.getLang().getMessage("time-format.week");
+            case "M": return plugin.getLang().getMessage("time-format.month");
+            default: return "";
+        }
+    }
+    
+    /**
+     * 重新加载GUI配置文件
+     */
+    public void reloadConfig() {
+        // 重新加载 GUI 配置
+        File guiFile = new File(plugin.getDataFolder(), "gui.yml");
+        if (guiFile.exists()) {
+            this.guiConfig = YamlConfiguration.loadConfiguration(guiFile);
+            
+            // 更新基本设置
+            this.guiTitle = guiConfig.getString("settings.title", "&b&l飞行商店").replace("&", "§");
+            this.guiSize = guiConfig.getInt("settings.size", 27);
+            
+            // 清除旧命令映射
+            this.slotCommands.clear();
+            
+            plugin.getLogger().info("GUI配置文件已重新加载");
+        } else {
+            plugin.getLogger().warning("无法找到 gui.yml 文件，无法重新加载 GUI 配置");
         }
     }
 } 
