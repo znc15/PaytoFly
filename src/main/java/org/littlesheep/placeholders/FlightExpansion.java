@@ -4,6 +4,8 @@ import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 import org.littlesheep.paytofly;
 import org.littlesheep.utils.TimeFormatter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class FlightExpansion extends PlaceholderExpansion {
     private final paytofly plugin;
@@ -38,17 +40,35 @@ public class FlightExpansion extends PlaceholderExpansion {
             return "";
         }
 
-        if (params.equals("time_left")) {
-            Long endTime = plugin.getFlyingPlayers().get(player.getUniqueId());
+        // 获取玩家飞行结束时间
+        Long endTime = plugin.getFlyingPlayers().get(player.getUniqueId());
+        
+        if (params.equals("remaining")) {
             if (endTime == null || endTime < System.currentTimeMillis()) {
                 return plugin.getLang("time-format.expired");
             }
             return TimeFormatter.formatTime(endTime - System.currentTimeMillis());
         }
 
-        if (params.equals("has_flight")) {
-            Long endTime = plugin.getFlyingPlayers().get(player.getUniqueId());
-            return (endTime != null && endTime > System.currentTimeMillis()) ? "true" : "false";
+        if (params.equals("status")) {
+            boolean hasFlightEnabled = (endTime != null && endTime > System.currentTimeMillis());
+            return hasFlightEnabled ? plugin.getLang("status.enabled") : plugin.getLang("status.disabled");
+        }
+        
+        if (params.equals("expiretime")) {
+            if (endTime == null || endTime < System.currentTimeMillis()) {
+                return plugin.getLang("time-format.expired");
+            }
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            return dateFormat.format(new Date(endTime));
+        }
+        
+        if (params.equals("mode")) {
+            // 获取计时模式，这里假设是从配置中获取
+            String timeMode = plugin.getConfig().getString("time-mode", "real");
+            return timeMode.equalsIgnoreCase("real") ? 
+                   plugin.getLang("time-mode.real") : 
+                   plugin.getLang("time-mode.game");
         }
 
         return null;

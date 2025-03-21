@@ -29,9 +29,11 @@ import org.littlesheep.listeners.WorldChangeListener;
 import org.littlesheep.commands.FlyCommandTabCompleter;
 import org.littlesheep.utils.CustomTimeManager;
 import org.bukkit.ChatColor;
+import me.clip.placeholderapi.PlaceholderAPI;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -210,7 +212,7 @@ public final class paytofly extends JavaPlugin {
             // 管理员命令
             if (args[0].equalsIgnoreCase("disable") && player.hasPermission("paytofly.admin")) {
                 if (args.length < 2) {
-                    player.sendMessage(prefix + lang.getMessage("command-usage"));
+                    player.sendMessage(prefix + "§c用法: /fly disable <玩家名>");
                     return true;
                 }
                 
@@ -220,17 +222,32 @@ public final class paytofly extends JavaPlugin {
                     return true;
                 }
                 
+                // 检查目标玩家是否有飞行权限
+                Long endTime = storage.getPlayerFlightTime(target.getUniqueId());
+                boolean hadFlight = false;
+                
+                if (endTime != null && endTime > System.currentTimeMillis()) {
+                    hadFlight = true;
+                }
+                
+                // 禁用飞行
                 target.setAllowFlight(false);
                 target.setFlying(false);
                 storage.removePlayerFlightTime(target.getUniqueId());
                 flyingPlayers.remove(target.getUniqueId());
                 
+                // 取消倒计时
+                countdownManager.cancelCountdown(target);
+                
+                // 发送消息
                 String disableMessage = config.getString("messages.flight-disabled-by-admin", "§c管理员已关闭了你的飞行权限！");
                 target.sendMessage(prefix + disableMessage);
                 
-                String adminMessage = config.getString("messages.admin-disabled-flight", "§a已关闭玩家 {player} 的飞行权限")
-                    .replace("{player}", target.getName());
-                player.sendMessage(prefix + adminMessage);
+                if (hadFlight) {
+                    player.sendMessage(prefix + "§a已关闭玩家 §e" + target.getName() + " §a的飞行权限");
+                } else {
+                    player.sendMessage(prefix + "§e玩家 §e" + target.getName() + " §e原本没有飞行权限，但已确保其无法飞行");
+                }
                 
                 return true;
             }
@@ -251,6 +268,30 @@ public final class paytofly extends JavaPlugin {
                 shopGUI.reloadConfig();
                 
                 player.sendMessage(prefix + lang.getMessage("config-reloaded"));
+                return true;
+            }
+
+            if (args[0].equalsIgnoreCase("test")) {
+                if (!player.hasPermission("paytofly.admin")) {
+                    player.sendMessage(prefix + lang.getMessage("no-permission"));
+                    return true;
+                }
+                
+                if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") == null) {
+                    player.sendMessage(prefix + lang.getMessage("papi-not-found"));
+                    return true;
+                }
+                
+                player.sendMessage(prefix + lang.getMessage("papi-test-title"));
+                player.sendMessage(prefix + lang.getMessage("papi-test-remaining", 
+                    "{value}", PlaceholderAPI.setPlaceholders(player, "%paytofly_remaining%")));
+                player.sendMessage(prefix + lang.getMessage("papi-test-status", 
+                    "{value}", PlaceholderAPI.setPlaceholders(player, "%paytofly_status%")));
+                player.sendMessage(prefix + lang.getMessage("papi-test-expiretime", 
+                    "{value}", PlaceholderAPI.setPlaceholders(player, "%paytofly_expiretime%")));
+                player.sendMessage(prefix + lang.getMessage("papi-test-mode", 
+                    "{value}", PlaceholderAPI.setPlaceholders(player, "%paytofly_mode%")));
+                
                 return true;
             }
 
@@ -453,12 +494,16 @@ public final class paytofly extends JavaPlugin {
     }
 
     private void sendHelpMessage(Player player) {
-        player.sendMessage(prefix + lang.getMessage("help-title"));
-        player.sendMessage(prefix + lang.getMessage("help-commands"));
-        if (player.hasPermission("paytofly.admin")) {
-            player.sendMessage(prefix + lang.getMessage("help-reload"));
+        String helpTitle = lang.getMessage("help-title");
+        String helpFooter = lang.getMessage("help-footer");
+        List<String> helpCommands = lang.getStringList("help-commands");
+
+        player.sendMessage(helpTitle);
+        for (String line : helpCommands) {
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', line));
         }
-        player.sendMessage(prefix + lang.getMessage("help-footer"));
+
+        player.sendMessage(helpFooter);
     }
 
     @Override

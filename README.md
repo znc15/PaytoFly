@@ -29,8 +29,9 @@
 - `/fly time` - 查看剩余飞行时间
 - `/fly help` - 显示帮助信息
 - `/fly reload` - 重载插件配置 (需要权限)
-- `/fly 时间` - 购买飞行时间
-- `/fly bypass 用户名` - 绕过创造模式飞行限制
+- `/fly [时间]` - 购买飞行时间
+- `/fly bypass [用户名]` - 绕过创造模式飞行限制
+- `/fly disable [用户名]` - 关闭用户的飞行权限
 
 ## 权限
 
@@ -59,12 +60,13 @@
 - PlaceholderAPI (可选，变量支持)
 
 ## 支持的版本
-- 需要Java16及以上版本
-- Minecraft 1.20.x
-- Minecraft 1.19.x
-- Minecraft 1.18.x
-- Minecraft 1.17.x
-- Minecraft 1.16.x
+- 需要Java17及以上版本
+- Minecraft 1.21.x（已测试）
+- Minecraft 1.20.x（已测试）
+- Minecraft 1.19.x（未测试）
+- Minecraft 1.18.x（未测试）
+- Minecraft 1.17.x（未测试）
+- Minecraft 1.16.x（未测试）
 
 ## 未来规划
 

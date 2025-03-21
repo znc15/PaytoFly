@@ -16,7 +16,22 @@ public class FlyCommandTabCompleter implements TabCompleter {
             completions.add("help");
             if (sender.hasPermission("paytofly.admin")) {
                 completions.add("reload");
+                completions.add("bypass");
+                completions.add("disable");
             }
+            return completions;
+        }
+        
+        if (args.length == 2 && args[0].equalsIgnoreCase("bypass") && sender.hasPermission("paytofly.admin")) {
+            return null;
+        }
+        
+        if (args.length == 2 && args[0].equalsIgnoreCase("disable") && sender.hasPermission("paytofly.admin")) {
+            return null;
+        }
+        
+        if (args.length == 3 && args[0].equalsIgnoreCase("bypass") && sender.hasPermission("paytofly.admin")) {
+            completions.add("remove");
             return completions;
         }
         

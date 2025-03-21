@@ -18,6 +18,12 @@ messages:
   checking-players: "&e正在检查在线玩家的飞行状态..."
   check-complete: "&a检查完成！检查了 {checked} 个玩家，更新了 {updated} 个玩家的飞行状态"
   papi-hooked: "&a已成功挂钩 PlaceholderAPI！"
+  papi-not-found: "&c未找到 PlaceholderAPI 插件，请先安装。"
+  papi-test-title: "&6===== PlaceholderAPI 变量测试 ====="
+  papi-test-remaining: "&e- %paytofly_remaining%: &f{value}"
+  papi-test-status: "&e- %paytofly_status%: &f{value}"
+  papi-test-expiretime: "&e- %paytofly_expiretime%: &f{value}"
+  papi-test-mode: "&e- %paytofly_mode%: &f{value}"
 
   # 命令消息
   prefix: "&7[&bPayToFly&7] "
@@ -45,6 +51,7 @@ messages:
     - "&e/fly disable <玩家名> &7- &f关闭玩家的飞行权限 &c(管理员)"
     - "&e/fly bypass <玩家名> [remove] &7- &f给予/移除玩家飞行绕过权限 &c(管理员)"
     - "&e/fly reload &7- &f重载配置文件 &c(管理员)"
+    - "&e/fly test &7- &f测试 PlaceholderAPI 变量 &c(管理员)"
     - "&b时长单位说明:"
     - "&am - 分钟 (例如: /fly 30m)"
     - "&ah - 小时 (例如: /fly 5h)"
@@ -70,6 +77,16 @@ messages:
     month: "月"
     expired: "已过期"
   player-not-found: "&c找不到玩家：{player}"
+
+  # 状态显示
+  status:
+    enabled: "已开启"
+    disabled: "已关闭"
+    
+  # 计时模式
+  time-mode:
+    real: "现实时间"
+    game: "游戏时间"
 
   # 新添加的消息
   metrics-enabled: "&a已启用 bStats 数据统计"

@@ -18,6 +18,12 @@ messages:
   checking-players: "&eChecking flight status of online players..."
   check-complete: "&aCheck complete! Checked {checked} players, updated flight status for {updated} players"
   papi-hooked: "&aSuccessfully hooked into PlaceholderAPI!"
+  papi-not-found: "&cPlaceholderAPI plugin not found. Please install it first."
+  papi-test-title: "&6===== PlaceholderAPI Variables Test ====="
+  papi-test-remaining: "&e- %paytofly_remaining%: &f{value}"
+  papi-test-status: "&e- %paytofly_status%: &f{value}"
+  papi-test-expiretime: "&e- %paytofly_expiretime%: &f{value}"
+  papi-test-mode: "&e- %paytofly_mode%: &f{value}"
 
   # Command Messages
   prefix: "&7[&bPayToFly&7] "
@@ -39,10 +45,12 @@ messages:
   help-title: "&6=== PayToFly Help ==="
   help-commands:
     - "&e/fly help &7- &fShow help information"
+    - "&e/fly time &7- &fCheck remaining flight time"
     - "&e/fly <duration><unit> &7- &fPurchase flight time"
     - "&e/fly disable <player> &7- &fDisable player's flight &c(Admin)"
     - "&e/fly bypass <player> [remove] &7- &fGive/Remove player flight bypass permission &c(Admin)"
     - "&e/fly reload &7- &fReload configuration &c(Admin)"
+    - "&e/fly test &7- &fTest PlaceholderAPI variables &c(Admin)"
   help-time-units:
     - "&bTime Unit Guide:"
     - "&am - Minutes (e.g.: /fly 30m)"
@@ -67,6 +75,16 @@ messages:
     month: "month"
     expired: "expired"
   player-not-found: "&cPlayer not found: {player}"
+
+  # Status Display
+  status:
+    enabled: "Enabled"
+    disabled: "Disabled"
+    
+  # Time Mode
+  time-mode:
+    real: "Real Time"
+    game: "Game Time"
 
   # New Messages
   metrics-enabled: "&abStats metrics enabled"

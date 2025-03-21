@@ -7,6 +7,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.logging.Level;
+import java.util.List;
 
 public class LanguageManager {
     private final JavaPlugin plugin;
@@ -138,6 +139,15 @@ public class LanguageManager {
     }
 
     public void reloadLanguage() {
-        loadLanguage();
+        langConfig = YamlConfiguration.loadConfiguration(langFile);
+    }
+
+    /**
+     * 获取配置中的字符串列表
+     * @param path 路径
+     * @return 字符串列表
+     */
+    public List<String> getStringList(String path) {
+        return langConfig.getStringList(path);
     }
 } 

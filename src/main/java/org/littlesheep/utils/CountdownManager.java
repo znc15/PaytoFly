@@ -122,6 +122,16 @@ public class CountdownManager {
         }
     }
 
+    /**
+     * 取消玩家的倒计时
+     * @param player 要取消倒计时的玩家
+     */
+    public void cancelCountdown(Player player) {
+        if (player != null) {
+            stopCountdown(player.getUniqueId());
+        }
+    }
+
     private String formatTime(long milliseconds) {
         long seconds = milliseconds / 1000;
         long minutes = seconds / 60;
