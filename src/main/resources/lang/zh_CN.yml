@@ -65,8 +65,6 @@ messages:
   flight-ending-soon: "&c&l飞行能力即将在 {time} 后结束！"
   flight-expired: "&c您的飞行权限已过期，请重新购买。"
   time-remaining: "&e剩余时间: &6{time}"
-  join-flight-expired: "&c您的飞行权限已过期，请重新购买。"
-  join-protection-active: "&c您购买了飞行权限，已经激活飞行权限"
 
   # 时间单位
   time-format:

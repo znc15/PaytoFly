@@ -162,6 +162,24 @@ public final class paytofly extends JavaPlugin {
         getLogger().info("插件已经是完全体了喵 Ciallo～(∠・ω< )⌒★");
         
         loadMessageConfig();
+        
+        // 显示插件启动艺术字和说明
+        getLogger().info("\n" +
+                "  _____              _________    ______  _          \n" +
+                " |  __ \\            |__   __|   |  ____|| |         \n" +
+                " | |__) |__ _  _   _    | | ___  | |__   | | _   _   \n" +
+                " |  ___// _` || | | |   | |/ _ \\|  __|  | || | | |  \n" +
+                " | |   | (_| || |_| |   | |  (_) | |     | || |_| |  \n" +
+                " |_|    \\__,_| \\__,   |_|\\___/|_|     |_|\\__, |  \n" +
+                "                __/ |                        __/  |   \n" +
+                "               |___/                        |___ /    v");
+        
+        getLogger().info("===== PayToFly 插件启动说明 =====");
+        getLogger().info("• 作者: LittleSheep");
+        getLogger().info("• 当前版本: v" + getDescription().getVersion());
+        getLogger().info("• 存储类型: " + getConfig().getString("storage.type", "JSON"));
+        getLogger().info("• 语言: " + getConfig().getString("language", "zh_CN"));
+        getLogger().info("===== Ciallo～(∠・ω< )⌒★ =====");
     }
 
     @Override

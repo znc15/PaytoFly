@@ -142,11 +142,6 @@ public class LanguageManager {
         langConfig = YamlConfiguration.loadConfiguration(langFile);
     }
 
-    /**
-     * 获取配置中的字符串列表
-     * @param path 路径
-     * @return 字符串列表
-     */
     public List<String> getStringList(String path) {
         return langConfig.getStringList(path);
     }

@@ -18,6 +18,7 @@ public class FlyCommandTabCompleter implements TabCompleter {
                 completions.add("reload");
                 completions.add("bypass");
                 completions.add("disable");
+                completions.add("test");
             }
             return completions;
         }
@@ -33,6 +34,10 @@ public class FlyCommandTabCompleter implements TabCompleter {
         if (args.length == 3 && args[0].equalsIgnoreCase("bypass") && sender.hasPermission("paytofly.admin")) {
             completions.add("remove");
             return completions;
+        }
+        
+        if (args.length == 2 && args[0].equalsIgnoreCase("test") && sender.hasPermission("paytofly.admin")) {
+            return null;
         }
         
         return null;

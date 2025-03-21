@@ -45,19 +45,19 @@ public class FlightExpansion extends PlaceholderExpansion {
         
         if (params.equals("remaining")) {
             if (endTime == null || endTime < System.currentTimeMillis()) {
-                return plugin.getLang("time-format.expired");
+                return plugin.getLang().getMessage("time-format.expired");
             }
             return TimeFormatter.formatTime(endTime - System.currentTimeMillis());
         }
 
         if (params.equals("status")) {
             boolean hasFlightEnabled = (endTime != null && endTime > System.currentTimeMillis());
-            return hasFlightEnabled ? plugin.getLang("status.enabled") : plugin.getLang("status.disabled");
+            return hasFlightEnabled ? plugin.getLang().getMessage("status.enabled") : plugin.getLang().getMessage("status.disabled");
         }
         
         if (params.equals("expiretime")) {
             if (endTime == null || endTime < System.currentTimeMillis()) {
-                return plugin.getLang("time-format.expired");
+                return plugin.getLang().getMessage("time-format.expired");
             }
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             return dateFormat.format(new Date(endTime));
@@ -67,8 +67,8 @@ public class FlightExpansion extends PlaceholderExpansion {
             // 获取计时模式，这里假设是从配置中获取
             String timeMode = plugin.getConfig().getString("time-mode", "real");
             return timeMode.equalsIgnoreCase("real") ? 
-                   plugin.getLang("time-mode.real") : 
-                   plugin.getLang("time-mode.game");
+                   plugin.getLang().getMessage("time-mode.real") : 
+                   plugin.getLang().getMessage("time-mode.game");
         }
 
         return null;
