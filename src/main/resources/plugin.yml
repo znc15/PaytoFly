@@ -2,8 +2,8 @@ name: PayToFly
 version: '${project.version}'
 main: org.littlesheep.paytofly
 api-version: '1.13'
-depend: [Vault, Essentials]
-softdepend: [PlaceholderAPI]
+depend: [Vault]
+softdepend: [PlaceholderAPI, Essentials]
 commands:
   fly:
     description: 飞行命令

@@ -82,6 +82,37 @@
   </build>
 
   <repositories>
+      <!-- 阿里云Maven镜像 -->
+      <repository>
+          <id>aliyun</id>
+          <name>阿里云公共仓库</name>
+          <url>https://maven.aliyun.com/repository/public/</url>
+          <releases>
+              <enabled>true</enabled>
+          </releases>
+          <snapshots>
+              <enabled>true</enabled>
+          </snapshots>
+      </repository>
+
+      <!-- 阿里云Spring镜像 -->
+      <repository>
+          <id>aliyun-spring</id>
+          <name>阿里云Spring仓库</name>
+          <url>https://maven.aliyun.com/repository/spring</url>
+          <releases>
+              <enabled>true</enabled>
+          </releases>
+      </repository>
+
+      <!-- 腾讯云Maven镜像 -->
+      <repository>
+          <id>tencent</id>
+          <name>腾讯云仓库</name>
+          <url>https://mirrors.cloud.tencent.com/nexus/repository/maven-public/</url>
+      </repository>
+
+      <!-- Spigot仓库 -->
       <repository>
           <id>spigotmc-repo</id>
           <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
@@ -90,6 +121,7 @@
           <id>sonatype</id>
           <url>https://oss.sonatype.org/content/groups/public/</url>
       </repository>
+
       <repository>
           <id>jitpack.io</id>
           <url>https://jitpack.io</url>
@@ -98,9 +130,11 @@
           <id>placeholderapi</id>
           <url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url>
       </repository>
+
       <repository>
-        <id>CodeMC</id>
-        <url>https://repo.codemc.org/repository/maven-public</url>
+          <id>helpchat-repo-releases</id>
+          <name>HelpChat Maven Repository</name>
+          <url>https://repo.helpch.at/releases</url>
       </repository>
   </repositories>
 
