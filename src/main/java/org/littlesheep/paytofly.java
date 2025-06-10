@@ -77,16 +77,10 @@ public final class paytofly extends JavaPlugin {
         config = getConfig();
         prefix = config.getString("messages.prefix", "&7[&bPayToFly&7] ").replace("&", "§");
         
+        // 初始化经济系统
         getLogger().info("正在初始化经济系统...");
-        // 延迟初始化Vault
-        getServer().getScheduler().runTaskLater(this, () -> {
-            if (!setupEconomy()) {
-                getLogger().severe("未找到 Vault 插件，插件将被禁用！");
-                getServer().getPluginManager().disablePlugin(this);
-                return;
-            }
-            getLogger().info("经济系统初始化成功！");
-        }, 20L);
+        setupEconomy();
+        getLogger().info("经济系统初始化成功！");
         
         // 初始化存储系统
         getLogger().info("正在初始化存储系统...");
@@ -184,13 +178,19 @@ public final class paytofly extends JavaPlugin {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) {
+        if (!(sender instanceof Player) && !isAdminCommand(args)) {
             sender.sendMessage(prefix + lang.getMessage("command-player-only"));
             return true;
         }
-        Player player = (Player) sender;
 
         if (command.getName().equalsIgnoreCase("fly")) {
+            // 控制台执行管理命令
+            if (!(sender instanceof Player)) {
+                return handleConsoleCommand(sender, args);
+            }
+
+            Player player = (Player) sender;
+
             if (args.length == 0) {
                 shopGUI.openGUI(player);
                 return true;
@@ -343,6 +343,104 @@ public final class paytofly extends JavaPlugin {
                     player.sendMessage(prefix + "§a已给予玩家 " + target.getName() + " 飞行绕过权限");
                     target.sendMessage(prefix + "§a您已获得飞行绕过权限");
                 }
+                return true;
+            }
+
+            // 添加给予飞行权限命令
+            if (args[0].equalsIgnoreCase("give")) {
+                if (!player.hasPermission("paytofly.admin")) {
+                    player.sendMessage(prefix + lang.getMessage("no-permission"));
+                    return true;
+                }
+                
+                if (args.length < 3) {
+                    player.sendMessage(prefix + "§c用法: /fly give <玩家名> <时间>");
+                    return true;
+                }
+                
+                Player target = getServer().getPlayer(args[1]);
+                if (target == null) {
+                    player.sendMessage(prefix + lang.getMessage("player-not-found", "{player}", args[1]));
+                    return true;
+                }
+                
+                // 解析时间格式
+                String timeArg = args[2];
+                if (!timeArg.matches("\\d+[mhdw]") && !timeArg.matches("\\d+mo")) {
+                    player.sendMessage(prefix + lang.getMessage("invalid-time-format"));
+                    return true;
+                }
+
+                int amount;
+                String unit;
+                
+                // 检查是否是月份格式
+                if (timeArg.endsWith("mo")) {
+                    amount = Integer.parseInt(timeArg.substring(0, timeArg.length() - 2));
+                    unit = "mo";
+                } else {
+                    amount = Integer.parseInt(timeArg.substring(0, timeArg.length() - 1));
+                    unit = timeArg.substring(timeArg.length() - 1);
+                }
+                
+                long durationMillis;
+                String unitName;
+
+                switch (unit) {
+                    case "m":
+                        durationMillis = amount * 60 * 1000L;
+                        unitName = lang.getMessage("time-format.minute");
+                        break;
+                    case "h":
+                        durationMillis = amount * 60 * 60 * 1000L;
+                        unitName = lang.getMessage("time-format.hour");
+                        break;
+                    case "d":
+                        durationMillis = amount * 24 * 60 * 60 * 1000L;
+                        unitName = lang.getMessage("time-format.day");
+                        break;
+                    case "w":
+                        durationMillis = amount * 7 * 24 * 60 * 60 * 1000L;
+                        unitName = lang.getMessage("time-format.week");
+                        break;
+                    case "mo":
+                        durationMillis = amount * 30L * 24 * 60 * 60 * 1000L;
+                        unitName = lang.getMessage("time-format.month");
+                        break;
+                    default:
+                        player.sendMessage(prefix + lang.getMessage("invalid-time-format"));
+                        return true;
+                }
+
+                // 检查是否已经在飞行，如果是，则增加时间
+                long endTime;
+                if (flyingPlayers.containsKey(target.getUniqueId())) {
+                    long existingEndTime = flyingPlayers.get(target.getUniqueId());
+                    if (existingEndTime > System.currentTimeMillis()) {
+                        endTime = existingEndTime + durationMillis;
+                        player.sendMessage(prefix + "§a已为玩家 §e" + target.getName() + " §a增加 §6" + amount + unitName + " §a的飞行时间");
+                    } else {
+                        endTime = System.currentTimeMillis() + durationMillis;
+                        player.sendMessage(prefix + "§a已给予玩家 §e" + target.getName() + " §a共 §6" + amount + unitName + " §a的飞行时间");
+                    }
+                } else {
+                    endTime = System.currentTimeMillis() + durationMillis;
+                    player.sendMessage(prefix + "§a已给予玩家 §e" + target.getName() + " §a共 §6" + amount + unitName + " §a的飞行时间");
+                }
+                
+                // 设置飞行权限
+                target.setAllowFlight(true);
+                target.setFlying(true);
+                
+                flyingPlayers.put(target.getUniqueId(), endTime);
+                storage.setPlayerFlightTime(target.getUniqueId(), endTime);
+                
+                // 启动倒计时
+                countdownManager.startCountdown(target, endTime);
+                
+                // 通知玩家
+                target.sendMessage(prefix + "§a管理员给予了你 §6" + amount + unitName + " §a的飞行时间");
+                
                 return true;
             }
 
@@ -504,11 +602,13 @@ public final class paytofly extends JavaPlugin {
     }
 
     private boolean setupEconomy() {
-        if (getServer().getPluginManager().getPlugin("Vault") == null) return false;
-        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
-        if (rsp == null) return false;
-        econ = rsp.getProvider();
-        return econ != null;
+        if (getServer().getPluginManager().getPlugin("Vault") != null) {
+            RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+            if (rsp != null) {
+                econ = rsp.getProvider();
+            }
+        }
+        return true;
     }
 
     private void sendHelpMessage(Player player) {
@@ -645,5 +745,206 @@ public final class paytofly extends JavaPlugin {
 
     public LanguageManager getLang() {
         return this.lang;
+    }
+    
+    /**
+     * 检查是否为管理员命令
+     * @param args 命令参数
+     * @return 如果是管理员命令则返回true
+     */
+    private boolean isAdminCommand(String[] args) {
+        if (args.length == 0) {
+            return false;
+        }
+        
+        String cmd = args[0].toLowerCase();
+        return cmd.equals("disable") || cmd.equals("reload") || cmd.equals("give") || cmd.equals("bypass");
+    }
+    
+    /**
+     * 处理控制台执行的命令
+     * @param sender 命令发送者
+     * @param args 命令参数
+     * @return 命令执行结果
+     */
+    private boolean handleConsoleCommand(CommandSender sender, String[] args) {
+        if (args.length == 0) {
+            sender.sendMessage(prefix + "§c控制台只能执行管理员命令!");
+            return true;
+        }
+        
+        if (args[0].equalsIgnoreCase("give")) {
+            if (args.length < 3) {
+                sender.sendMessage(prefix + "§c用法: /fly give <玩家名> <时间>");
+                return true;
+            }
+            
+            Player target = getServer().getPlayer(args[1]);
+            if (target == null) {
+                sender.sendMessage(prefix + lang.getMessage("player-not-found", "{player}", args[1]));
+                return true;
+            }
+            
+            // 解析时间格式
+            String timeArg = args[2];
+            if (!timeArg.matches("\\d+[mhdw]") && !timeArg.matches("\\d+mo")) {
+                sender.sendMessage(prefix + lang.getMessage("invalid-time-format"));
+                return true;
+            }
+
+            int amount;
+            String unit;
+            
+            // 检查是否是月份格式
+            if (timeArg.endsWith("mo")) {
+                amount = Integer.parseInt(timeArg.substring(0, timeArg.length() - 2));
+                unit = "mo";
+            } else {
+                amount = Integer.parseInt(timeArg.substring(0, timeArg.length() - 1));
+                unit = timeArg.substring(timeArg.length() - 1);
+            }
+            
+            long durationMillis;
+            String unitName;
+
+            switch (unit) {
+                case "m":
+                    durationMillis = amount * 60 * 1000L;
+                    unitName = lang.getMessage("time-format.minute");
+                    break;
+                case "h":
+                    durationMillis = amount * 60 * 60 * 1000L;
+                    unitName = lang.getMessage("time-format.hour");
+                    break;
+                case "d":
+                    durationMillis = amount * 24 * 60 * 60 * 1000L;
+                    unitName = lang.getMessage("time-format.day");
+                    break;
+                case "w":
+                    durationMillis = amount * 7 * 24 * 60 * 60 * 1000L;
+                    unitName = lang.getMessage("time-format.week");
+                    break;
+                case "mo":
+                    durationMillis = amount * 30L * 24 * 60 * 60 * 1000L;
+                    unitName = lang.getMessage("time-format.month");
+                    break;
+                default:
+                    sender.sendMessage(prefix + lang.getMessage("invalid-time-format"));
+                    return true;
+            }
+
+            // 检查是否已经在飞行，如果是，则增加时间
+            long endTime;
+            if (flyingPlayers.containsKey(target.getUniqueId())) {
+                long existingEndTime = flyingPlayers.get(target.getUniqueId());
+                if (existingEndTime > System.currentTimeMillis()) {
+                    endTime = existingEndTime + durationMillis;
+                    sender.sendMessage(prefix + "§a已为玩家 §e" + target.getName() + " §a增加 §6" + amount + unitName + " §a的飞行时间");
+                } else {
+                    endTime = System.currentTimeMillis() + durationMillis;
+                    sender.sendMessage(prefix + "§a已给予玩家 §e" + target.getName() + " §a共 §6" + amount + unitName + " §a的飞行时间");
+                }
+            } else {
+                endTime = System.currentTimeMillis() + durationMillis;
+                sender.sendMessage(prefix + "§a已给予玩家 §e" + target.getName() + " §a共 §6" + amount + unitName + " §a的飞行时间");
+            }
+            
+            // 设置飞行权限
+            target.setAllowFlight(true);
+            target.setFlying(true);
+            
+            flyingPlayers.put(target.getUniqueId(), endTime);
+            storage.setPlayerFlightTime(target.getUniqueId(), endTime);
+            
+            // 启动倒计时
+            countdownManager.startCountdown(target, endTime);
+            
+            // 通知玩家
+            target.sendMessage(prefix + "§a管理员给予了你 §6" + amount + unitName + " §a的飞行时间");
+            
+            return true;
+        } else if (args[0].equalsIgnoreCase("disable")) {
+            if (args.length < 2) {
+                sender.sendMessage(prefix + "§c用法: /fly disable <玩家名>");
+                return true;
+            }
+            
+            Player target = getServer().getPlayer(args[1]);
+            if (target == null) {
+                sender.sendMessage(prefix + lang.getMessage("player-not-found", "{player}", args[1]));
+                return true;
+            }
+            
+            // 检查目标玩家是否有飞行权限
+            Long endTime = storage.getPlayerFlightTime(target.getUniqueId());
+            boolean hadFlight = false;
+            
+            if (endTime != null && endTime > System.currentTimeMillis()) {
+                hadFlight = true;
+            }
+            
+            // 禁用飞行
+            target.setAllowFlight(false);
+            target.setFlying(false);
+            storage.removePlayerFlightTime(target.getUniqueId());
+            flyingPlayers.remove(target.getUniqueId());
+            
+            // 取消倒计时
+            countdownManager.cancelCountdown(target);
+            
+            // 发送消息
+            String disableMessage = config.getString("messages.flight-disabled-by-admin", "§c管理员已关闭了你的飞行权限！");
+            target.sendMessage(prefix + disableMessage);
+            
+            if (hadFlight) {
+                sender.sendMessage(prefix + "§a已关闭玩家 §e" + target.getName() + " §a的飞行权限");
+            } else {
+                sender.sendMessage(prefix + "§e玩家 §e" + target.getName() + " §e原本没有飞行权限，但已确保其无法飞行");
+            }
+            
+            return true;
+        } else if (args[0].equalsIgnoreCase("reload")) {
+            // 重载配置文件
+            reloadConfig();
+            config = getConfig();
+            
+            // 重载语言文件
+            lang = new LanguageManager(this, getConfig().getString("language", "zh_CN"));
+            
+            // 重新初始化GUI
+            shopGUI.reloadConfig();
+            
+            sender.sendMessage(prefix + lang.getMessage("config-reloaded"));
+            return true;
+        } else if (args[0].equalsIgnoreCase("bypass")) {
+            if (args.length < 2) {
+                sender.sendMessage(prefix + "§c用法: /fly bypass <玩家名> [remove]");
+                return true;
+            }
+            
+            Player target = getServer().getPlayer(args[1]);
+            if (target == null) {
+                sender.sendMessage(prefix + lang.getMessage("player-not-found", "{player}", args[1]));
+                return true;
+            }
+            
+            if (args.length >= 3 && args[2].equalsIgnoreCase("remove")) {
+                // 移除绕过权限
+                getServer().dispatchCommand(getServer().getConsoleSender(), 
+                    "lp user " + target.getName() + " permission unset paytofly.bypass");
+                sender.sendMessage(prefix + "§a已移除玩家 " + target.getName() + " 的飞行绕过权限");
+                target.sendMessage(prefix + "§c您的飞行绕过权限已被移除");
+            } else {
+                // 添加绕过权限
+                getServer().dispatchCommand(getServer().getConsoleSender(), 
+                    "lp user " + target.getName() + " permission set paytofly.bypass true");
+                sender.sendMessage(prefix + "§a已给予玩家 " + target.getName() + " 飞行绕过权限");
+                target.sendMessage(prefix + "§a您已获得飞行绕过权限");
+            }
+            return true;
+        }
+        
+        sender.sendMessage(prefix + "§c未知命令! 控制台可用命令: give, disable, reload, bypass");
+        return true;
     }
 }
