@@ -32,8 +32,7 @@ public class FlyCommandTabCompleter implements TabCompleter {
                 // 基础命令和时间建议
                 completions.addAll(baseCommands);
                 if (sender.hasPermission("paytofly.use")) {
-                    completions.addAll(timeFormats);
-                }
+                    completions.addAll(timeFormats);                }
             }
             return filterCompletions(completions, args[0]);
         } else if (args.length == 2) {

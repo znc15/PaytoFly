@@ -52,8 +52,8 @@ public class CustomTimeManager implements Listener {
             double pricePerMinute = plugin.getConfig().getDouble("fly-cost.minute", 10.0);
             double totalPrice = pricePerMinute * minutes;
             
-            if (plugin.getEconomy().has(player, totalPrice)) {
-                plugin.getEconomy().withdrawPlayer(player, totalPrice);
+            if (plugin.getEconomyManager().getBalance(player) >= totalPrice) {
+                plugin.getEconomyManager().withdraw(player, totalPrice);
                 plugin.getTimeManager().addTime(player, minutes * 60 * 1000L);
                 
                 player.sendMessage(plugin.getPrefix() + 

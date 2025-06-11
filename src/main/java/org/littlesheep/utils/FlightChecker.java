@@ -1,5 +1,6 @@
 package org.littlesheep.utils;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.littlesheep.paytofly;
 
@@ -57,6 +58,10 @@ public class FlightChecker {
                 player.sendMessage(plugin.getPrefix() + lang.getMessage("flight-expired", 
                     "{time}", expireTime));
                 flyingPlayers.remove(uuid);
+                
+                // 同步取消MHDF-Tools飞行权限
+                syncMHDFToolsDisableFlight(player);
+                
                 statusChanged = true;
             }
         } else {
@@ -68,11 +73,55 @@ public class FlightChecker {
                     "{time}", expireTime,
                     "{remaining}", TimeFormatter.formatTime(endTime - System.currentTimeMillis())));
                 plugin.getCountdownManager().startCountdown(player, endTime);
+                
+                // 同步MHDF-Tools飞行权限
+                syncMHDFToolsFlight(player, endTime);
+                
                 statusChanged = true;
             }
         }
 
         return statusChanged;
+    }
+
+    /**
+     * 同步MHDF-Tools飞行权限
+     * @param player 玩家
+     * @param endTime 结束时间
+     */
+    private void syncMHDFToolsFlight(Player player, long endTime) {
+        if (Bukkit.getPluginManager().getPlugin("MHDF-Tools") != null) {
+            try {
+                // 只使用fly命令设置飞行权限，不使用flytime命令
+                String command = "fly " + player.getName() + " true";
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+                plugin.getLogger().info("已同步玩家 " + player.getName() + " 的飞行权限到MHDF-Tools");
+            } catch (Exception e) {
+                plugin.getLogger().warning("同步MHDF-Tools飞行权限失败: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * 同步取消MHDF-Tools飞行权限
+     * @param player 玩家
+     */
+    private void syncMHDFToolsDisableFlight(Player player) {
+        if (Bukkit.getPluginManager().getPlugin("MHDF-Tools") != null) {
+            try {
+                // 使用MHDF-Tools的fly命令取消飞行权限
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), 
+                        "fly " + player.getName() + " false");
+                
+                // 确保完全移除权限 - 尝试清除可能存在的任何临时权限
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), 
+                        "lp user " + player.getName() + " permission unset mhdtools.commands.fly.temp");
+                
+                plugin.getLogger().info("已禁用玩家 " + player.getName() + " 的MHDF-Tools飞行权限");
+            } catch (Exception e) {
+                plugin.getLogger().warning("同步取消MHDF-Tools飞行权限失败: " + e.getMessage());
+            }
+        }
     }
 
     private String formatTime(long timestamp) {

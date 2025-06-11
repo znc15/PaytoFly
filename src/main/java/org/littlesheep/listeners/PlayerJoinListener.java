@@ -37,8 +37,9 @@ public class PlayerJoinListener implements Listener {
                 if (remaining > 0) {
                     // 飞行时间未过期
                     player.setAllowFlight(true);
-                    player.sendMessage(plugin.getPrefix() + plugin.getLang("flight-restored")
-                        .replace("{remaining}", formatDuration(remaining)));
+                    player.sendMessage(plugin.getPrefix() + plugin.getLang().getMessage("flight-restored", 
+                        "{time}", formatDuration(remaining),
+                        "{remaining}", formatDuration(remaining)));
                     
                     // 启动倒计时（如果接近结束）
                     plugin.getCountdownManager().startCountdown(player, endTime);

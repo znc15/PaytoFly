@@ -11,6 +11,8 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.littlesheep.data.Storage;
 import org.littlesheep.data.StorageFactory;
+import org.littlesheep.economy.EconomyAdapter;
+import org.littlesheep.economy.EconomyManager;
 import org.littlesheep.listeners.PlayerListener;
 import org.littlesheep.placeholders.FlightExpansion;
 import org.littlesheep.utils.CountdownManager;
@@ -39,6 +41,7 @@ import java.util.UUID;
 
 public final class paytofly extends JavaPlugin {
     private Economy econ;
+    private EconomyManager economyManager;
     private Map<UUID, Long> flyingPlayers = new HashMap<>();
     private FileConfiguration config;
     private String prefix;
@@ -79,8 +82,16 @@ public final class paytofly extends JavaPlugin {
         
         // 初始化经济系统
         getLogger().info("正在初始化经济系统...");
-        setupEconomy();
-        getLogger().info("经济系统初始化成功！");
+        economyManager = new EconomyManager(this);
+        if (economyManager.isInitialized()) {
+            getLogger().info("经济系统初始化成功！使用: " + economyManager.getEconomyName());
+            econ = economyManager.getCurrentEconomy() != null ? 
+                   getServer().getServicesManager().getRegistration(Economy.class) != null ? 
+                   getServer().getServicesManager().getRegistration(Economy.class).getProvider() : null : null;
+        } else {
+            getLogger().severe("经济系统初始化失败！某些功能可能无法正常工作！");
+            getLogger().severe("请确保安装了Vault或其他支持的经济插件（如MHDF-Tools, EssentialsX等）");
+        }
         
         // 初始化存储系统
         getLogger().info("正在初始化存储系统...");
@@ -253,6 +264,9 @@ public final class paytofly extends JavaPlugin {
                 target.setFlying(false);
                 storage.removePlayerFlightTime(target.getUniqueId());
                 flyingPlayers.remove(target.getUniqueId());
+                
+                // 同步取消MHDF-Tools飞行权限
+                syncMHDFToolsDisableFlight(target);
                 
                 // 取消倒计时
                 countdownManager.cancelCountdown(target);
@@ -435,6 +449,9 @@ public final class paytofly extends JavaPlugin {
                 flyingPlayers.put(target.getUniqueId(), endTime);
                 storage.setPlayerFlightTime(target.getUniqueId(), endTime);
                 
+                // 同步MHDF-Tools飞行权限
+                syncMHDFToolsFlight(target, endTime);
+                
                 // 启动倒计时
                 countdownManager.startCountdown(target, endTime);
                 
@@ -524,6 +541,15 @@ public final class paytofly extends JavaPlugin {
                 return true;
             }
 
+            // 检查经济系统
+            if (econ == null) {
+                if (!economyManager.isInitialized()) {
+                    player.sendMessage(prefix + "§c经济系统未正确初始化，无法购买飞行权限！");
+                    getLogger().severe("尝试使用经济系统，但它未正确初始化！请检查经济插件。");
+                    return true;
+                }
+            }
+
             // 计算总价
             double totalCost = costPerUnit * amount;
 
@@ -533,7 +559,7 @@ public final class paytofly extends JavaPlugin {
                 "{amount}", String.format("%.2f", totalCost)));
 
             // 检查余额并处理购买
-            if (econ.getBalance(player) >= totalCost) {
+            if (economyManager.getBalance(player) >= totalCost) {
                 // 检查是否已经在飞行
                 if (flyingPlayers.containsKey(player.getUniqueId())) {
                     long remainingTime = flyingPlayers.get(player.getUniqueId()) - System.currentTimeMillis();
@@ -544,13 +570,16 @@ public final class paytofly extends JavaPlugin {
                     }
                 }
 
-                econ.withdrawPlayer(player, totalCost);
+                economyManager.withdraw(player, totalCost);
                 player.setAllowFlight(true);
                 player.setFlying(true);
                 
                 long endTime = System.currentTimeMillis() + durationMillis;
                 flyingPlayers.put(player.getUniqueId(), endTime);
                 storage.setPlayerFlightTime(player.getUniqueId(), endTime);
+                
+                // 同步MHDF-Tools飞行权限
+                syncMHDFToolsFlight(player, endTime);
                 
                 // 启动倒计时
                 countdownManager.startCountdown(player, endTime);
@@ -602,13 +631,8 @@ public final class paytofly extends JavaPlugin {
     }
 
     private boolean setupEconomy() {
-        if (getServer().getPluginManager().getPlugin("Vault") != null) {
-            RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
-            if (rsp != null) {
-                econ = rsp.getProvider();
-            }
-        }
-        return true;
+        // 此方法已被EconomyManager替代，但为了兼容性保留
+        return economyManager != null && economyManager.isInitialized();
     }
 
     private void sendHelpMessage(Player player) {
@@ -856,6 +880,9 @@ public final class paytofly extends JavaPlugin {
             flyingPlayers.put(target.getUniqueId(), endTime);
             storage.setPlayerFlightTime(target.getUniqueId(), endTime);
             
+            // 同步MHDF-Tools飞行权限
+            syncMHDFToolsFlight(target, endTime);
+            
             // 启动倒计时
             countdownManager.startCountdown(target, endTime);
             
@@ -888,6 +915,9 @@ public final class paytofly extends JavaPlugin {
             target.setFlying(false);
             storage.removePlayerFlightTime(target.getUniqueId());
             flyingPlayers.remove(target.getUniqueId());
+            
+            // 同步取消MHDF-Tools飞行权限
+            syncMHDFToolsDisableFlight(target);
             
             // 取消倒计时
             countdownManager.cancelCountdown(target);
@@ -946,5 +976,50 @@ public final class paytofly extends JavaPlugin {
         
         sender.sendMessage(prefix + "§c未知命令! 控制台可用命令: give, disable, reload, bypass");
         return true;
+    }
+
+    // 添加获取经济管理器的方法
+    public EconomyManager getEconomyManager() {
+        return economyManager;
+    }
+
+    /**
+     * 同步MHDF-Tools飞行权限
+     * @param player 玩家
+     * @param endTime 结束时间
+     */
+    private void syncMHDFToolsFlight(Player player, long endTime) {
+        if (getServer().getPluginManager().getPlugin("MHDF-Tools") != null) {
+            try {
+                // 只使用fly命令设置飞行权限，不使用flytime命令
+                String command = "fly " + player.getName() + " true";
+                getServer().dispatchCommand(Bukkit.getConsoleSender(), command);
+                getLogger().info("已同步玩家 " + player.getName() + " 的飞行权限到MHDF-Tools");
+            } catch (Exception e) {
+                getLogger().warning("同步MHDF-Tools飞行权限失败: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * 同步取消MHDF-Tools飞行权限
+     * @param player 玩家
+     */
+    private void syncMHDFToolsDisableFlight(Player player) {
+        if (getServer().getPluginManager().getPlugin("MHDF-Tools") != null) {
+            try {
+                // 使用MHDF-Tools的fly命令取消飞行权限
+                getServer().dispatchCommand(Bukkit.getConsoleSender(), 
+                        "fly " + player.getName() + " false");
+                
+                // 确保完全移除权限 - 尝试清除可能存在的任何临时权限
+                getServer().dispatchCommand(Bukkit.getConsoleSender(), 
+                        "lp user " + player.getName() + " permission unset mhdtools.commands.fly.temp");
+                
+                getLogger().info("已禁用玩家 " + player.getName() + " 的MHDF-Tools飞行权限");
+            } catch (Exception e) {
+                getLogger().warning("同步取消MHDF-Tools飞行权限失败: " + e.getMessage());
+            }
+        }
     }
 }

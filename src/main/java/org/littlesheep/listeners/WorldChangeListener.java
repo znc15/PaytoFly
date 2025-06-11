@@ -36,6 +36,10 @@ public class WorldChangeListener implements Listener {
             if (disableInfiniteInRestricted || !player.hasPermission("paytofly.infinite")) {
                 player.setAllowFlight(false);
                 player.setFlying(false);
+                
+                // 同步取消MHDF-Tools飞行权限
+                syncMHDFToolsDisableFlight(player);
+                
                 if (notifyOnEnter) {
                     player.sendMessage(plugin.getPrefix() + plugin.getLang().getMessage("world-flight-disabled"));
                 }
@@ -46,6 +50,10 @@ public class WorldChangeListener implements Listener {
         // 检查是否是免费飞行世界
         if (freeWorlds.contains(worldName)) {
             player.setAllowFlight(true);
+            
+            // 同步MHDF-Tools飞行权限 (免费世界无限时长)
+            syncMHDFToolsEnableFlight(player);
+            
             if (notifyOnEnter) {
                 player.sendMessage(plugin.getPrefix() + plugin.getLang().getMessage("world-free-flight"));
             }
@@ -55,6 +63,10 @@ public class WorldChangeListener implements Listener {
         // 检查无限飞行权限
         if (infiniteEnabled && player.hasPermission("paytofly.infinite")) {
             player.setAllowFlight(true);
+            
+            // 同步MHDF-Tools飞行权限 (无限权限)
+            syncMHDFToolsEnableFlight(player);
+            
             return;
         }
 
@@ -62,45 +74,86 @@ public class WorldChangeListener implements Listener {
         Long endTime = plugin.getStorage().getPlayerFlightTime(player.getUniqueId());
         if (endTime != null && endTime > System.currentTimeMillis()) {
             player.setAllowFlight(true);
+            
+            // 同步MHDF-Tools飞行权限
+            syncMHDFToolsFlight(player, endTime);
         } else {
             player.setAllowFlight(false);
             player.setFlying(false);
+            
+            // 同步取消MHDF-Tools飞行权限
+            syncMHDFToolsDisableFlight(player);
         }
     }
-
+    
+    /**
+     * 同步MHDF-Tools飞行权限
+     * @param player 玩家
+     * @param endTime 结束时间
+     */
+    private void syncMHDFToolsFlight(Player player, long endTime) {
+        if (Bukkit.getPluginManager().getPlugin("MHDF-Tools") != null) {
+            try {
+                // 只使用fly命令设置飞行权限，不使用flytime命令
+                String command = "fly " + player.getName() + " true";
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+            } catch (Exception e) {
+                plugin.getLogger().warning("同步MHDF-Tools飞行权限失败: " + e.getMessage());
+            }
+        }
+    }
+    
+    /**
+     * 同步启用MHDF-Tools无限飞行权限
+     * @param player 玩家
+     */
+    private void syncMHDFToolsEnableFlight(Player player) {
+        if (Bukkit.getPluginManager().getPlugin("MHDF-Tools") != null) {
+            try {
+                // 使用MHDF-Tools的fly命令启用无限飞行权限
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), 
+                        "fly " + player.getName() + " true");
+            } catch (Exception e) {
+                plugin.getLogger().warning("同步启用MHDF-Tools飞行权限失败: " + e.getMessage());
+            }
+        }
+    }
+    
+    /**
+     * 同步取消MHDF-Tools飞行权限
+     * @param player 玩家
+     */
+    private void syncMHDFToolsDisableFlight(Player player) {
+        if (Bukkit.getPluginManager().getPlugin("MHDF-Tools") != null) {
+            try {
+                // 使用MHDF-Tools的fly命令取消飞行权限
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), 
+                        "fly " + player.getName() + " false");
+                
+                // 确保完全移除权限 - 尝试清除可能存在的任何临时权限
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), 
+                        "lp user " + player.getName() + " permission unset mhdtools.commands.fly.temp");
+            } catch (Exception e) {
+                plugin.getLogger().warning("同步取消MHDF-Tools飞行权限失败: " + e.getMessage());
+            }
+        }
+    }
+    
     // 添加死亡事件监听
     @EventHandler
-    public void onPlayerRespawn(PlayerRespawnEvent event) {
-        Player player = event.getPlayer();
+    public void onRespawn(PlayerRespawnEvent event) {
+        final Player player = event.getPlayer();
         
-        // 延迟1tick执行，确保重生后正确设置飞行状态
+        // 延迟一秒检查飞行状态，避免死亡后立即取消飞行
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            World world = player.getWorld();
-            String worldName = world.getName();
-            
-            // 检查是否在禁飞世界
-            if (plugin.getConfig().getStringList("worlds.disabled").contains(worldName)) {
-                return;
-            }
-            
-            // 检查是否在免费飞行世界
-            if (plugin.getConfig().getStringList("worlds.free-fly").contains(worldName)) {
-                player.setAllowFlight(true);
-                return;
-            }
-            
-            // 检查无限飞行权限
-            if (plugin.getConfig().getBoolean("settings.infinite-flight", true) 
-                && player.hasPermission("paytofly.infinite")) {
-                player.setAllowFlight(true);
-                return;
-            }
-            
-            // 检查购买状态
+            // 检查玩家飞行权限
             Long endTime = plugin.getStorage().getPlayerFlightTime(player.getUniqueId());
             if (endTime != null && endTime > System.currentTimeMillis()) {
                 player.setAllowFlight(true);
+                
+                // 同步MHDF-Tools飞行权限
+                syncMHDFToolsFlight(player, endTime);
             }
-        }, 1L);
+        }, 20L); // 20 ticks = 1 second
     }
 } 

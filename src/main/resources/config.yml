@@ -104,3 +104,14 @@ worlds:
     - "minigames"
   # 是否在进入禁飞世界时发送提示
   notify-on-enter: true
+
+# MHDF-Tools 兼容设置
+mhdf-tools:
+  # 是否启用和MHDF-Tools的飞行权限同步
+  sync-flight: true
+  # 是否静默执行同步命令，不在控制台显示MHDF-Tools消息
+  silent-sync: true
+  # 是否在玩家切换世界时同步飞行权限
+  sync-on-world-change: true
+  # 是否在玩家重生时同步飞行权限
+  sync-on-respawn: true

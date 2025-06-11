@@ -233,8 +233,33 @@ public class FlightShopGUI implements Listener {
         
         if (command != null) {
             player.closeInventory();
-            player.performCommand(command);
+            try {
+                // 检查经济系统是否正常初始化
+                if (!plugin.getEconomyManager().isInitialized() && command.startsWith("fly ") && !isAdminCommand(command)) {
+                    player.sendMessage(plugin.getPrefix() + "§c经济系统未正确初始化，无法购买飞行权限！");
+                    plugin.getLogger().severe("尝试使用经济系统，但它未正确初始化！请检查经济插件。");
+                    return;
+                }
+                player.performCommand(command);
+            } catch (Exception e) {
+                player.sendMessage(plugin.getPrefix() + "§c执行命令时出错：" + e.getMessage());
+                plugin.getLogger().severe("玩家 " + player.getName() + " 执行命令时出错: " + command);
+                plugin.getLogger().severe(e.getMessage());
+                e.printStackTrace();
+            }
         }
+    }
+
+    /**
+     * 判断命令是否为管理员命令
+     * @param command 命令字符串
+     * @return 如果是管理员命令则返回true
+     */
+    private boolean isAdminCommand(String command) {
+        String[] parts = command.split(" ");
+        if (parts.length < 2) return false;
+        String cmd = parts[1].toLowerCase();
+        return cmd.equals("disable") || cmd.equals("reload") || cmd.equals("give") || cmd.equals("bypass");
     }
 
     private void createCustomTimeItem(Inventory inv) {
