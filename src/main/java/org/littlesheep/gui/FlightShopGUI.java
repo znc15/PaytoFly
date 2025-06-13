@@ -236,16 +236,15 @@ public class FlightShopGUI implements Listener {
             try {
                 // 检查经济系统是否正常初始化
                 if (!plugin.getEconomyManager().isInitialized() && command.startsWith("fly ") && !isAdminCommand(command)) {
-                    player.sendMessage(plugin.getPrefix() + "§c经济系统未正确初始化，无法购买飞行权限！");
-                    plugin.getLogger().severe("尝试使用经济系统，但它未正确初始化！请检查经济插件。");
+                    player.sendMessage(plugin.getPrefix() + plugin.getLang().getMessage("gui-economy-error"));
+                    plugin.getLogger().severe(plugin.getLang().getMessage("economy-not-initialized"));
                     return;
                 }
                 player.performCommand(command);
             } catch (Exception e) {
-                player.sendMessage(plugin.getPrefix() + "§c执行命令时出错：" + e.getMessage());
+                player.sendMessage(plugin.getPrefix() + plugin.getLang().getMessage("gui-command-error", "{error}", e.getMessage()));
                 plugin.getLogger().severe("玩家 " + player.getName() + " 执行命令时出错: " + command);
                 plugin.getLogger().severe(e.getMessage());
-                e.printStackTrace();
             }
         }
     }
@@ -318,13 +317,17 @@ public class FlightShopGUI implements Listener {
             if (slot == customTimeSlot && guiConfig.getBoolean("custom-time.enabled", true)) {
                 double pricePerMinute = plugin.getConfig().getDouble("fly-cost.minute", 10.0);
                 int minMinutes = plugin.getConfig().getInt("time-limits.minute.min", 5);
+                int maxMinutes = plugin.getConfig().getInt("time-limits.minute.max", 60);
+                
                 player.closeInventory();
-                player.sendMessage(plugin.getPrefix() + "§e请在聊天框中输入想要购买的时间（分钟）");
-                player.sendMessage(plugin.getPrefix() + "§7每分钟需要 §6" + pricePerMinute + " §7金币");
-                player.sendMessage(plugin.getPrefix() + "§7最低购买时间: §6" + minMinutes + " §7分钟");
-                player.sendMessage(plugin.getPrefix() + "§7示例: §e输入 §6" + minMinutes + " §e购买 §6" + minMinutes + "分钟 §e飞行时间，需要 §6" + 
-                    (pricePerMinute * minMinutes) + " §e金币");
-                plugin.getCustomTimeManager().waitForInput(player);
+                plugin.getCustomTimeManager().startCustomTimePurchase(player, minMinutes, maxMinutes);
+                
+                player.sendMessage(plugin.getPrefix() + plugin.getLang().getMessage("gui-input-time"));
+                player.sendMessage(plugin.getPrefix() + plugin.getLang().getMessage("gui-price-per-minute", "{price}", String.valueOf(pricePerMinute)));
+                player.sendMessage(plugin.getPrefix() + plugin.getLang().getMessage("gui-min-time", "{min}", String.valueOf(minMinutes)));
+                player.sendMessage(plugin.getPrefix() + plugin.getLang().getMessage("gui-example", 
+                    "{min}", String.valueOf(minMinutes), 
+                    "{price}", String.valueOf(pricePerMinute * minMinutes)));
                 return;
             }
             
@@ -366,13 +369,27 @@ public class FlightShopGUI implements Listener {
                     }
                 }
                 
-                player.closeInventory();
-                player.performCommand(command);
+                // 执行购买命令
+                try {
+                    if (!plugin.getEconomyManager().isInitialized()) {
+                        player.sendMessage(plugin.getPrefix() + plugin.getLang().getMessage("gui-economy-error"));
+                        plugin.getLogger().severe(plugin.getLang().getMessage("economy-not-initialized"));
+                        player.closeInventory();
+                        return;
+                    }
+                    
+                    player.closeInventory();
+                    plugin.getServer().dispatchCommand(player, command);
+                } catch (Exception e) {
+                    player.sendMessage(plugin.getPrefix() + plugin.getLang().getMessage("gui-command-error", "{error}", e.getMessage()));
+                    plugin.getLogger().severe("玩家 " + player.getName() + " 执行命令时出错: " + command);
+                    plugin.getLogger().severe(e.getMessage());
+                }
             }
         } catch (Exception e) {
+            player.sendMessage(plugin.getPrefix() + plugin.getLang().getMessage("gui-error"));
             plugin.getLogger().warning("处理GUI点击事件时出错");
             plugin.getLogger().warning(e.getMessage());
-            player.sendMessage(plugin.getPrefix() + "§c处理请求时出错，请联系管理员");
         }
     }
 

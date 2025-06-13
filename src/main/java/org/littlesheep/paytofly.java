@@ -64,7 +64,7 @@ public final class paytofly extends JavaPlugin {
         
         // 检查配置文件
         if (!configChecker.checkConfig()) {
-            getLogger().severe("配置文件检查失败！插件将被禁用！");
+            getLogger().severe(lang.getMessage("config-failed"));
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
@@ -81,27 +81,27 @@ public final class paytofly extends JavaPlugin {
         prefix = config.getString("messages.prefix", "&7[&bPayToFly&7] ").replace("&", "§");
         
         // 初始化经济系统
-        getLogger().info("正在初始化经济系统...");
+        getLogger().info(lang.getMessage("economy-init-detail"));
         economyManager = new EconomyManager(this);
         if (economyManager.isInitialized()) {
-            getLogger().info("经济系统初始化成功！使用: " + economyManager.getEconomyName());
+            getLogger().info(lang.getMessage("economy-success-detail", "{name}", economyManager.getEconomyName()));
             econ = economyManager.getCurrentEconomy() != null ? 
                    getServer().getServicesManager().getRegistration(Economy.class) != null ? 
                    getServer().getServicesManager().getRegistration(Economy.class).getProvider() : null : null;
         } else {
-            getLogger().severe("经济系统初始化失败！某些功能可能无法正常工作！");
-            getLogger().severe("请确保安装了Vault或其他支持的经济插件（如MHDF-Tools, EssentialsX等）");
+            getLogger().severe(lang.getMessage("economy-failed-detail"));
+            getLogger().severe(lang.getMessage("economy-failed-hint"));
         }
         
         // 初始化存储系统
-        getLogger().info("正在初始化存储系统...");
+        getLogger().info(lang.getMessage("storage-init-detail"));
         try {
             storage = StorageFactory.createStorage(getConfig().getString("storage.type", "JSON"), this);
             storage.init();
-            getLogger().info("存储系统初始化成功！（类型：" + 
-                (getConfig().getString("storage.type", "JSON")) + "）");
+            getLogger().info(lang.getMessage("storage-success-detail", 
+                "{type}", getConfig().getString("storage.type", "JSON")));
         } catch (Exception e) {
-            getLogger().severe("存储系统初始化失败！");
+            getLogger().severe(lang.getMessage("storage-failed-detail"));
             e.printStackTrace();
             getServer().getPluginManager().disablePlugin(this);
             return;
@@ -121,7 +121,7 @@ public final class paytofly extends JavaPlugin {
                 }
             }
         }
-        getLogger().info("已加载 " + flyingPlayers.size() + " 条飞行数据");
+        getLogger().info(lang.getMessage("data-loaded-detail", "{count}", String.valueOf(flyingPlayers.size())));
         
         // 注册事件监听器
         getServer().getPluginManager().registerEvents(new PlayerListener(this, storage), this);
@@ -163,8 +163,8 @@ public final class paytofly extends JavaPlugin {
         customTimeManager = new CustomTimeManager(this);
         getServer().getPluginManager().registerEvents(customTimeManager, this);
         
-        getLogger().info("PayToFly插件启动完成！");
-        getLogger().info("插件已经是完全体了喵 Ciallo～(∠・ω< )⌒★");
+        getLogger().info(lang.getMessage("plugin-enabled-detail"));
+        getLogger().info(lang.getMessage("plugin-splash"));
         
         loadMessageConfig();
         
@@ -179,12 +179,12 @@ public final class paytofly extends JavaPlugin {
                 "                __/ |                        __/  |   \n" +
                 "               |___/                        |___ /    v");
         
-        getLogger().info("===== PayToFly 插件启动说明 =====");
-        getLogger().info("• 作者: LittleSheep");
-        getLogger().info("• 当前版本: v" + getDescription().getVersion());
-        getLogger().info("• 存储类型: " + getConfig().getString("storage.type", "JSON"));
-        getLogger().info("• 语言: " + getConfig().getString("language", "zh_CN"));
-        getLogger().info("===== Ciallo～(∠・ω< )⌒★ =====");
+        getLogger().info(lang.getMessage("plugin-info-header"));
+        getLogger().info(lang.getMessage("plugin-info-author"));
+        getLogger().info(lang.getMessage("plugin-info-version", "{version}", getDescription().getVersion()));
+        getLogger().info(lang.getMessage("plugin-info-storage", "{type}", getConfig().getString("storage.type", "JSON")));
+        getLogger().info(lang.getMessage("plugin-info-language", "{language}", getConfig().getString("language", "zh_CN")));
+        getLogger().info(lang.getMessage("plugin-info-footer"));
     }
 
     @Override
@@ -241,7 +241,7 @@ public final class paytofly extends JavaPlugin {
             // 管理员命令
             if (args[0].equalsIgnoreCase("disable") && player.hasPermission("paytofly.admin")) {
                 if (args.length < 2) {
-                    player.sendMessage(prefix + "§c用法: /fly disable <玩家名>");
+                    player.sendMessage(prefix + lang.getMessage("cmd-disable-usage"));
                     return true;
                 }
                 
@@ -272,13 +272,13 @@ public final class paytofly extends JavaPlugin {
                 countdownManager.cancelCountdown(target);
                 
                 // 发送消息
-                String disableMessage = config.getString("messages.flight-disabled-by-admin", "§c管理员已关闭了你的飞行权限！");
+                String disableMessage = lang.getMessage("flight-disabled-by-admin");
                 target.sendMessage(prefix + disableMessage);
                 
                 if (hadFlight) {
-                    player.sendMessage(prefix + "§a已关闭玩家 §e" + target.getName() + " §a的飞行权限");
+                    player.sendMessage(prefix + lang.getMessage("admin-disabled-flight", "{player}", target.getName()));
                 } else {
-                    player.sendMessage(prefix + "§e玩家 §e" + target.getName() + " §e原本没有飞行权限，但已确保其无法飞行");
+                    player.sendMessage(prefix + lang.getMessage("cmd-player-had-no-permission", "{player}", target.getName()));
                 }
                 
                 return true;
@@ -334,7 +334,7 @@ public final class paytofly extends JavaPlugin {
                 }
                 
                 if (args.length < 2) {
-                    player.sendMessage(prefix + "§c用法: /fly bypass <玩家名> [remove]");
+                    player.sendMessage(prefix + lang.getMessage("bypass.usage"));
                     return true;
                 }
                 
@@ -348,14 +348,14 @@ public final class paytofly extends JavaPlugin {
                     // 移除绕过权限
                     getServer().dispatchCommand(getServer().getConsoleSender(), 
                         "lp user " + target.getName() + " permission unset paytofly.bypass");
-                    player.sendMessage(prefix + "§a已移除玩家 " + target.getName() + " 的飞行绕过权限");
-                    target.sendMessage(prefix + "§c您的飞行绕过权限已被移除");
+                    player.sendMessage(prefix + lang.getMessage("bypass.remove-success", "{player}", target.getName()));
+                    target.sendMessage(prefix + lang.getMessage("bypass.target-remove"));
                 } else {
                     // 添加绕过权限
                     getServer().dispatchCommand(getServer().getConsoleSender(), 
                         "lp user " + target.getName() + " permission set paytofly.bypass true");
-                    player.sendMessage(prefix + "§a已给予玩家 " + target.getName() + " 飞行绕过权限");
-                    target.sendMessage(prefix + "§a您已获得飞行绕过权限");
+                    player.sendMessage(prefix + lang.getMessage("bypass.add-success", "{player}", target.getName()));
+                    target.sendMessage(prefix + lang.getMessage("bypass.target-add"));
                 }
                 return true;
             }
@@ -368,7 +368,7 @@ public final class paytofly extends JavaPlugin {
                 }
                 
                 if (args.length < 3) {
-                    player.sendMessage(prefix + "§c用法: /fly give <玩家名> <时间>");
+                    player.sendMessage(prefix + lang.getMessage("cmd-give-usage"));
                     return true;
                 }
                 
@@ -432,14 +432,23 @@ public final class paytofly extends JavaPlugin {
                     long existingEndTime = flyingPlayers.get(target.getUniqueId());
                     if (existingEndTime > System.currentTimeMillis()) {
                         endTime = existingEndTime + durationMillis;
-                        player.sendMessage(prefix + "§a已为玩家 §e" + target.getName() + " §a增加 §6" + amount + unitName + " §a的飞行时间");
+                        player.sendMessage(prefix + lang.getMessage("cmd-add-time", 
+                            "{player}", target.getName(),
+                            "{amount}", String.valueOf(amount),
+                            "{unit}", unitName));
                     } else {
                         endTime = System.currentTimeMillis() + durationMillis;
-                        player.sendMessage(prefix + "§a已给予玩家 §e" + target.getName() + " §a共 §6" + amount + unitName + " §a的飞行时间");
+                        player.sendMessage(prefix + lang.getMessage("cmd-give-time", 
+                            "{player}", target.getName(),
+                            "{amount}", String.valueOf(amount),
+                            "{unit}", unitName));
                     }
                 } else {
                     endTime = System.currentTimeMillis() + durationMillis;
-                    player.sendMessage(prefix + "§a已给予玩家 §e" + target.getName() + " §a共 §6" + amount + unitName + " §a的飞行时间");
+                    player.sendMessage(prefix + lang.getMessage("cmd-give-time", 
+                        "{player}", target.getName(),
+                        "{amount}", String.valueOf(amount),
+                        "{unit}", unitName));
                 }
                 
                 // 设置飞行权限
@@ -456,7 +465,9 @@ public final class paytofly extends JavaPlugin {
                 countdownManager.startCountdown(target, endTime);
                 
                 // 通知玩家
-                target.sendMessage(prefix + "§a管理员给予了你 §6" + amount + unitName + " §a的飞行时间");
+                target.sendMessage(prefix + lang.getMessage("cmd-given-time", 
+                    "{amount}", String.valueOf(amount),
+                    "{unit}", unitName));
                 
                 return true;
             }
@@ -544,8 +555,8 @@ public final class paytofly extends JavaPlugin {
             // 检查经济系统
             if (econ == null) {
                 if (!economyManager.isInitialized()) {
-                    player.sendMessage(prefix + "§c经济系统未正确初始化，无法购买飞行权限！");
-                    getLogger().severe("尝试使用经济系统，但它未正确初始化！请检查经济插件。");
+                    player.sendMessage(prefix + lang.getMessage("economy-not-initialized"));
+                    getLogger().severe(lang.getMessage("economy-not-initialized"));
                     return true;
                 }
             }
@@ -603,13 +614,13 @@ public final class paytofly extends JavaPlugin {
         long days = hours / 24;
         
         if (days > 0) {
-            return days + "天" + hours % 24 + "小时";
+            return days + lang.getMessage("time-day") + hours % 24 + lang.getMessage("time-hour");
         } else if (hours > 0) {
-            return hours + "小时" + minutes % 60 + "分钟";
+            return hours + lang.getMessage("time-hour") + minutes % 60 + lang.getMessage("time-minute");
         } else if (minutes > 0) {
-            return minutes + "分钟";
+            return minutes + lang.getMessage("time-minute");
         } else {
-            return seconds + "秒";
+            return seconds + lang.getMessage("time-second");
         }
     }
 
@@ -620,13 +631,13 @@ public final class paytofly extends JavaPlugin {
         long days = hours / 24;
         
         if (days > 0) {
-            return days + "天" + hours % 24 + "小时" + minutes % 60 + "分钟";
+            return days + lang.getMessage("time-day") + hours % 24 + lang.getMessage("time-hour") + minutes % 60 + lang.getMessage("time-minute");
         } else if (hours > 0) {
-            return hours + "小时" + minutes % 60 + "分钟";
+            return hours + lang.getMessage("time-hour") + minutes % 60 + lang.getMessage("time-minute");
         } else if (minutes > 0) {
-            return minutes + "分钟";
+            return minutes + lang.getMessage("time-minute");
         } else {
-            return seconds + "秒";
+            return seconds + lang.getMessage("time-second");
         }
     }
 
@@ -673,7 +684,7 @@ public final class paytofly extends JavaPlugin {
     public String getLang(String path) {
         String message = langConfig.getString(path);
         if (message == null) {
-            getLogger().warning("找不到语言键: " + path);
+            getLogger().warning(lang.getMessage("lang-key-missing", "{key}", path));
             message = path;
         }
         return ChatColor.translateAlternateColorCodes('&', message);
@@ -753,8 +764,8 @@ public final class paytofly extends JavaPlugin {
             try {
                 saveResource("lang/" + language + ".yml", false);
             } catch (IllegalArgumentException e) {
-                getLogger().warning("无法找到语言文件: " + language + ".yml");
-                getLogger().warning("使用默认语言文件...");
+                getLogger().warning(lang.getMessage("lang-not-found", "{file}", language + ".yml"));
+                getLogger().warning(lang.getMessage("lang-default"));
                 saveResource("lang/zh_CN.yml", false);
                 langFile = new File(langFolder, "zh_CN.yml");
             }
@@ -793,13 +804,13 @@ public final class paytofly extends JavaPlugin {
      */
     private boolean handleConsoleCommand(CommandSender sender, String[] args) {
         if (args.length == 0) {
-            sender.sendMessage(prefix + "§c控制台只能执行管理员命令!");
+            sender.sendMessage(prefix + lang.getMessage("console-player-command"));
             return true;
         }
         
         if (args[0].equalsIgnoreCase("give")) {
             if (args.length < 3) {
-                sender.sendMessage(prefix + "§c用法: /fly give <玩家名> <时间>");
+                sender.sendMessage(prefix + lang.getMessage("cmd-give-usage"));
                 return true;
             }
             
@@ -863,14 +874,23 @@ public final class paytofly extends JavaPlugin {
                 long existingEndTime = flyingPlayers.get(target.getUniqueId());
                 if (existingEndTime > System.currentTimeMillis()) {
                     endTime = existingEndTime + durationMillis;
-                    sender.sendMessage(prefix + "§a已为玩家 §e" + target.getName() + " §a增加 §6" + amount + unitName + " §a的飞行时间");
+                    sender.sendMessage(prefix + lang.getMessage("cmd-add-time", 
+                        "{player}", target.getName(),
+                        "{amount}", String.valueOf(amount),
+                        "{unit}", unitName));
                 } else {
                     endTime = System.currentTimeMillis() + durationMillis;
-                    sender.sendMessage(prefix + "§a已给予玩家 §e" + target.getName() + " §a共 §6" + amount + unitName + " §a的飞行时间");
+                    sender.sendMessage(prefix + lang.getMessage("cmd-give-time", 
+                        "{player}", target.getName(),
+                        "{amount}", String.valueOf(amount),
+                        "{unit}", unitName));
                 }
             } else {
                 endTime = System.currentTimeMillis() + durationMillis;
-                sender.sendMessage(prefix + "§a已给予玩家 §e" + target.getName() + " §a共 §6" + amount + unitName + " §a的飞行时间");
+                sender.sendMessage(prefix + lang.getMessage("cmd-give-time", 
+                    "{player}", target.getName(),
+                    "{amount}", String.valueOf(amount),
+                    "{unit}", unitName));
             }
             
             // 设置飞行权限
@@ -887,12 +907,14 @@ public final class paytofly extends JavaPlugin {
             countdownManager.startCountdown(target, endTime);
             
             // 通知玩家
-            target.sendMessage(prefix + "§a管理员给予了你 §6" + amount + unitName + " §a的飞行时间");
+            target.sendMessage(prefix + lang.getMessage("cmd-given-time", 
+                "{amount}", String.valueOf(amount),
+                "{unit}", unitName));
             
             return true;
         } else if (args[0].equalsIgnoreCase("disable")) {
             if (args.length < 2) {
-                sender.sendMessage(prefix + "§c用法: /fly disable <玩家名>");
+                sender.sendMessage(prefix + lang.getMessage("cmd-disable-usage"));
                 return true;
             }
             
@@ -923,13 +945,13 @@ public final class paytofly extends JavaPlugin {
             countdownManager.cancelCountdown(target);
             
             // 发送消息
-            String disableMessage = config.getString("messages.flight-disabled-by-admin", "§c管理员已关闭了你的飞行权限！");
+            String disableMessage = lang.getMessage("flight-disabled-by-admin");
             target.sendMessage(prefix + disableMessage);
             
             if (hadFlight) {
-                sender.sendMessage(prefix + "§a已关闭玩家 §e" + target.getName() + " §a的飞行权限");
+                sender.sendMessage(prefix + lang.getMessage("admin-disabled-flight", "{player}", target.getName()));
             } else {
-                sender.sendMessage(prefix + "§e玩家 §e" + target.getName() + " §e原本没有飞行权限，但已确保其无法飞行");
+                sender.sendMessage(prefix + lang.getMessage("cmd-player-had-no-permission", "{player}", target.getName()));
             }
             
             return true;
@@ -948,7 +970,7 @@ public final class paytofly extends JavaPlugin {
             return true;
         } else if (args[0].equalsIgnoreCase("bypass")) {
             if (args.length < 2) {
-                sender.sendMessage(prefix + "§c用法: /fly bypass <玩家名> [remove]");
+                sender.sendMessage(prefix + lang.getMessage("bypass.usage"));
                 return true;
             }
             
@@ -962,19 +984,19 @@ public final class paytofly extends JavaPlugin {
                 // 移除绕过权限
                 getServer().dispatchCommand(getServer().getConsoleSender(), 
                     "lp user " + target.getName() + " permission unset paytofly.bypass");
-                sender.sendMessage(prefix + "§a已移除玩家 " + target.getName() + " 的飞行绕过权限");
-                target.sendMessage(prefix + "§c您的飞行绕过权限已被移除");
+                sender.sendMessage(prefix + lang.getMessage("bypass.remove-success", "{player}", target.getName()));
+                target.sendMessage(prefix + lang.getMessage("bypass.target-remove"));
             } else {
                 // 添加绕过权限
                 getServer().dispatchCommand(getServer().getConsoleSender(), 
                     "lp user " + target.getName() + " permission set paytofly.bypass true");
-                sender.sendMessage(prefix + "§a已给予玩家 " + target.getName() + " 飞行绕过权限");
-                target.sendMessage(prefix + "§a您已获得飞行绕过权限");
+                sender.sendMessage(prefix + lang.getMessage("bypass.add-success", "{player}", target.getName()));
+                target.sendMessage(prefix + lang.getMessage("bypass.target-add"));
             }
             return true;
         }
         
-        sender.sendMessage(prefix + "§c未知命令! 控制台可用命令: give, disable, reload, bypass");
+        sender.sendMessage(prefix + lang.getMessage("console-unknown-command"));
         return true;
     }
 
@@ -994,9 +1016,9 @@ public final class paytofly extends JavaPlugin {
                 // 只使用fly命令设置飞行权限，不使用flytime命令
                 String command = "fly " + player.getName() + " true";
                 getServer().dispatchCommand(Bukkit.getConsoleSender(), command);
-                getLogger().info("已同步玩家 " + player.getName() + " 的飞行权限到MHDF-Tools");
+                getLogger().info(lang.getMessage("mhdf-sync-success", "{player}", player.getName()));
             } catch (Exception e) {
-                getLogger().warning("同步MHDF-Tools飞行权限失败: " + e.getMessage());
+                getLogger().warning(lang.getMessage("mhdf-sync-failed", "{error}", e.getMessage()));
             }
         }
     }
@@ -1016,9 +1038,9 @@ public final class paytofly extends JavaPlugin {
                 getServer().dispatchCommand(Bukkit.getConsoleSender(), 
                         "lp user " + player.getName() + " permission unset mhdtools.commands.fly.temp");
                 
-                getLogger().info("已禁用玩家 " + player.getName() + " 的MHDF-Tools飞行权限");
+                getLogger().info(lang.getMessage("mhdf-disable-success", "{player}", player.getName()));
             } catch (Exception e) {
-                getLogger().warning("同步取消MHDF-Tools飞行权限失败: " + e.getMessage());
+                getLogger().warning(lang.getMessage("mhdf-disable-failed", "{error}", e.getMessage()));
             }
         }
     }

@@ -133,3 +133,70 @@ messages:
     remove-success: "&a已移除玩家 {player} 的飞行绕过权限"
     target-add: "&a您已获得飞行绕过权限"
     target-remove: "&c您的飞行绕过权限已被移除"
+  
+  # 新增硬编码消息
+  config-failed: "&c配置文件检查失败！插件将被禁用！"
+  economy-init-detail: "&e正在初始化经济系统..."
+  economy-success-detail: "&a经济系统初始化成功！使用: {name}"
+  economy-failed-detail: "&c经济系统初始化失败！某些功能可能无法正常工作！"
+  economy-failed-hint: "&c请确保安装了Vault或其他支持的经济插件（如MHDF-Tools, EssentialsX等）"
+  storage-init-detail: "&e正在初始化存储系统..."
+  storage-success-detail: "&a存储系统初始化成功！（类型：{type}）"
+  storage-failed-detail: "&c存储系统初始化失败！"
+  data-loaded-detail: "&a已加载 {count} 条飞行数据"
+  plugin-enabled-detail: "&aPayToFly插件启动完成！"
+  plugin-splash: "&a插件已经是完全体了喵 Ciallo～(∠・ω< )⌒★"
+  plugin-info-header: "&6===== PayToFly 插件启动说明 ====="
+  plugin-info-author: "&6• 作者: LittleSheep"
+  plugin-info-version: "&6• 当前版本: v{version}"
+  plugin-info-storage: "&6• 存储类型: {type}"
+  plugin-info-language: "&6• 语言: {language}"
+  plugin-info-footer: "&6===== Ciallo～(∠・ω< )⌒★ ====="
+  
+  # 命令相关补充消息
+  cmd-disable-usage: "&c用法: /fly disable <玩家名>"
+  cmd-player-had-no-permission: "&e玩家 {player} 原本没有飞行权限，但已确保其无法飞行"
+  cmd-bypass-usage: "&c用法: /fly bypass <玩家名> [remove]"
+  cmd-give-usage: "&c用法: /fly give <玩家名> <时间>"
+  cmd-add-time: "&a已为玩家 {player} 增加 {amount}{unit} 的飞行时间"
+  cmd-give-time: "&a已给予玩家 {player} 共 {amount}{unit} 的飞行时间"
+  cmd-given-time: "&a管理员给予了你 {amount}{unit} 的飞行时间"
+  
+  # 控制台命令相关
+  console-player-command: "&c控制台只能执行管理员命令!"
+  console-unknown-command: "&c未知命令! 控制台可用命令: give, disable, reload, bypass"
+  
+  # 系统消息补充
+  economy-not-initialized: "&c经济系统未正确初始化，无法购买飞行权限！"
+  
+  # 更新检查相关
+  update-found: "&e发现新版本！"
+  update-current: "&e当前版本: &f{version}"
+  update-latest: "&e最新版本: &f{latest}"
+  update-download: "&e下载地址: &fhttps://github.com/znc15/paytofly/releases"
+  
+  # GUI相关补充
+  gui-economy-error: "&c经济系统未正确初始化，无法购买飞行权限！"
+  gui-command-error: "&c执行命令时出错：{error}"
+  gui-input-time: "&e请在聊天框中输入想要购买的时间（分钟）"
+  gui-price-per-minute: "&7每分钟需要 &6{price} &7金币"
+  gui-min-time: "&7最低购买时间: &6{min} &7分钟"
+  gui-example: "&7示例: &e输入 &6{min} &e购买 &6{min}分钟 &e飞行时间，需要 &6{price} &e金币"
+  gui-error: "&c处理请求时出错，请联系管理员"
+  
+  # 语言文件相关
+  lang-not-found: "&c无法找到语言文件: {file}"
+  lang-default: "&e使用默认语言文件..."
+  lang-key-missing: "&c缺失的语言键: {key}"
+  
+  # 时间格式化
+  time-day: "天"
+  time-hour: "小时"
+  time-minute: "分钟"
+  time-second: "秒"
+  
+  # MHDF-Tools同步相关
+  mhdf-sync-success: "&a已同步玩家 {player} 的飞行权限到MHDF-Tools"
+  mhdf-sync-failed: "&c同步MHDF-Tools飞行权限失败: {error}"
+  mhdf-disable-success: "&a已禁用玩家 {player} 的MHDF-Tools飞行权限"
+  mhdf-disable-failed: "&c同步取消MHDF-Tools飞行权限失败: {error}"

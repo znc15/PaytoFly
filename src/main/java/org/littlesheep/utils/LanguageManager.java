@@ -8,6 +8,10 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.logging.Level;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+
+import org.bukkit.ChatColor;
 
 public class LanguageManager {
     private final JavaPlugin plugin;
@@ -16,12 +20,14 @@ public class LanguageManager {
     private static final double CURRENT_LANG_VERSION = 1.0;
     private final File langFolder;
     private final File langFile;
+    private Map<String, String> messages;
 
     public LanguageManager(JavaPlugin plugin, String language) {
         this.plugin = plugin;
         this.language = language;
         this.langFolder = new File(plugin.getDataFolder(), "lang");
         this.langFile = new File(langFolder, language + ".yml");
+        this.messages = new HashMap<>();
         loadLanguage();
     }
 
@@ -109,18 +115,20 @@ public class LanguageManager {
     }
 
     public String getMessage(String path) {
+        // 首先看是否设置了默认消息
+        if (this.messages.containsKey(path)) {
+            return ChatColor.translateAlternateColorCodes('&', messages.get(path));
+        }
+        
+        // 尝试从文件中获取
         String message = langConfig.getString("messages." + path);
         if (message == null) {
-            plugin.getLogger().warning("找不到语言键: " + path);
-            // 尝试重新加载语言文件
-            updateLanguageFile();
-            loadLanguage();
-            message = langConfig.getString("messages." + path);
-            if (message == null) {
-                return "§c缺失的语言键: " + path;
-            }
+            return ChatColor.translateAlternateColorCodes('&', "&c缺失的语言键: " + path);
         }
-        return message.replace("&", "§");
+        
+        // 缓存并返回
+        messages.put(path, message);
+        return ChatColor.translateAlternateColorCodes('&', message);
     }
 
     public String getMessage(String path, String... replacements) {

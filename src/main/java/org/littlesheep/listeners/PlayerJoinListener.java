@@ -72,6 +72,18 @@ public class PlayerJoinListener implements Listener {
                 }
             });
         }
+
+        // 检查更新通知 (只有管理员能看见)
+        if (player.hasPermission("paytofly.admin") && plugin.getUpdateChecker() != null) {
+            String currentVersion = plugin.getDescription().getVersion();
+            String latestVersion = plugin.getUpdateChecker().getLatestVersion();
+            if (latestVersion != null && !currentVersion.equals(latestVersion)) {
+                player.sendMessage(plugin.getPrefix() + plugin.getLang().getMessage("update-found"));
+                player.sendMessage(plugin.getPrefix() + plugin.getLang().getMessage("update-current", "{version}", currentVersion));
+                player.sendMessage(plugin.getPrefix() + plugin.getLang().getMessage("update-latest", "{latest}", latestVersion));
+                player.sendMessage(plugin.getPrefix() + plugin.getLang().getMessage("update-download"));
+            }
+        }
     }
 
     private String formatDuration(long milliseconds) {
