@@ -320,7 +320,7 @@ public class FlightShopGUI implements Listener {
                 int maxMinutes = plugin.getConfig().getInt("time-limits.minute.max", 60);
                 
                 player.closeInventory();
-                plugin.getCustomTimeManager().startCustomTimePurchase(player, minMinutes, maxMinutes);
+                plugin.getCustomTimeManager().waitForInput(player);
                 
                 player.sendMessage(plugin.getPrefix() + plugin.getLang().getMessage("gui-input-time"));
                 player.sendMessage(plugin.getPrefix() + plugin.getLang().getMessage("gui-price-per-minute", "{price}", String.valueOf(pricePerMinute)));
