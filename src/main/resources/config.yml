@@ -134,6 +134,73 @@ worlds:
   # 是否在进入禁飞世界时发送提示
   notify-on-enter: true
 
+# 飞行特效设置
+flight-effects:
+  # 是否启用飞行特效系统
+  enabled: true
+  # 特效配置
+  effects:
+    # 粒子密度 (1-10, 数值越高粒子越多)
+    particle-density: 5
+    # 特效范围（块为单位）
+    effect-range: 30
+    # 是否在玩家静止时减少特效
+    reduce-when-idle: true
+  # 音效设置
+  sounds:
+    # 是否启用音效
+    enabled: true
+    # 音效音量 (0.0-1.0)
+    volume: 0.7
+    # 音效音调 (0.1-2.0)
+    pitch: 1.0
+  # 特效购买价格设置
+  purchase:
+    # 是否启用特效购买系统
+    enabled: true
+    # 各特效的价格
+    prices:
+      basic: 100.0      # 基础特效
+      rainbow: 500.0    # 彩虹特效
+      star: 800.0       # 星星特效
+      fire: 1200.0      # 火焰特效
+      magic: 2000.0     # 魔法特效
+      dragon: 5000.0    # 龙息特效
+
+# 飞行速度控制设置
+flight-speed:
+  # 是否启用飞行速度控制
+  enabled: true
+  # 默认飞行速度等级
+  default-speed: "normal"
+  # 最大允许速度 (0.1-1.0)
+  max-speed: 1.0
+  # 速度过渡设置
+  transition:
+    # 是否启用平滑过渡
+    smooth: true
+    # 过渡时间（毫秒）
+    duration: 250
+  # 自动调整设置
+  auto-adjust:
+    # 是否启用自动速度调整
+    enabled: false
+    # 基于剩余时间的速度调整
+    time-based: true
+  # 速度购买价格设置
+  purchase:
+    # 是否启用速度购买系统
+    enabled: true
+    # 各速度等级的价格
+    prices:
+      slow: 50.0        # 缓慢速度
+      normal: 0.0       # 普通速度（免费）
+      fast: 200.0       # 快速
+      very_fast: 600.0  # 极速
+      super_fast: 1500.0 # 超速
+      light_speed: 3000.0 # 光速
+      warp_speed: 8000.0  # 曲速
+
 # MHDF-Tools 兼容设置
 mhdf-tools:
   # 是否启用和MHDF-Tools的飞行权限同步

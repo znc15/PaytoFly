@@ -9,6 +9,7 @@ import org.bukkit.GameMode;
 import org.littlesheep.data.Storage;
 import org.littlesheep.paytofly;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerToggleFlightEvent;
 import org.bukkit.Bukkit;
 import java.util.UUID;
 
@@ -107,5 +108,33 @@ public class PlayerListener implements Listener {
             }
         }
         return false;
+    }
+
+    @EventHandler
+    public void onPlayerToggleFlight(PlayerToggleFlightEvent event) {
+        Player player = event.getPlayer();
+        
+        // 检查是否有飞行权限或无限权限
+        Long endTime = storage.getPlayerFlightTime(player.getUniqueId());
+        boolean hasInfinitePermission = player.hasPermission("paytofly.infinite");
+        boolean hasPurchasedTime = endTime != null && endTime > System.currentTimeMillis();
+        
+        if (event.isFlying() && (hasInfinitePermission || hasPurchasedTime)) {
+            // 玩家开始飞行 - 启动特效和设置速度
+            if (plugin.getEffectManager() != null) {
+                var effectType = plugin.getEffectManager().getPlayerEffect(player);
+                plugin.getEffectManager().startFlightEffect(player, effectType);
+            }
+            
+            if (plugin.getSpeedManager() != null) {
+                var speedLevel = plugin.getSpeedManager().getPlayerSpeed(player);
+                plugin.getSpeedManager().setFlightSpeed(player, speedLevel);
+            }
+        } else if (!event.isFlying()) {
+            // 玩家停止飞行 - 停止特效
+            if (plugin.getEffectManager() != null) {
+                plugin.getEffectManager().stopFlightEffect(player);
+            }
+        }
     }
 } 

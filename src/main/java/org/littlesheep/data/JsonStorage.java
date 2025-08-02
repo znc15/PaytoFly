@@ -10,7 +10,9 @@ import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -31,6 +33,11 @@ public class JsonStorage implements Storage {
     
     // 数据存储
     private final Map<UUID, Long> data = new ConcurrentHashMap<>();
+    private final Map<UUID, Set<String>> playerEffects = new ConcurrentHashMap<>();
+    private final Map<UUID, Set<String>> playerSpeeds = new ConcurrentHashMap<>();
+    
+    // 新版本数据存储（向后兼容）
+    private final Map<UUID, PlayerData> playerDataMap = new ConcurrentHashMap<>();
     
     // 批量写入相关
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
@@ -195,27 +202,65 @@ public class JsonStorage implements Storage {
                 }
             }
             
-            // 加载数据
+            // 加载数据 - 支持新旧格式
             try (Reader reader = new BufferedReader(new FileReader(dataFile))) {
-                Type type = new TypeToken<Map<UUID, Long>>(){}.getType();
-                Map<UUID, Long> loadedData = gson.fromJson(reader, type);
-                
-                if (loadedData != null) {
-                    dataLock.writeLock().lock();
-                    try {
-                        data.clear();
-                        data.putAll(loadedData);
-                    } finally {
-                        dataLock.writeLock().unlock();
-                    }
-                    
-                    plugin.getLogger().info(String.format("成功加载 %d 条玩家数据", data.size()));
-                    
-                    // 清理过期数据
-                    cleanExpiredData();
-                } else {
-                    plugin.getLogger().warning("数据文件为空或格式不正确");
+                // 先尝试加载新格式
+                JsonDataContainer containerData = null;
+                try {
+                    containerData = gson.fromJson(reader, JsonDataContainer.class);
+                } catch (Exception e) {
+                    plugin.getLogger().info("检测到旧格式数据文件，正在转换...");
                 }
+                
+                dataLock.writeLock().lock();
+                try {
+                    if (containerData != null && containerData.isNewFormat()) {
+                        // 新格式数据
+                        data.clear();
+                        playerEffects.clear();
+                        playerSpeeds.clear();
+                        
+                        if (containerData.getFlightData() != null) {
+                            data.putAll(containerData.getFlightData());
+                        }
+                        if (containerData.getEffectData() != null) {
+                            for (Map.Entry<UUID, Set<String>> entry : containerData.getEffectData().entrySet()) {
+                                playerEffects.put(entry.getKey(), ConcurrentHashMap.newKeySet());
+                                playerEffects.get(entry.getKey()).addAll(entry.getValue());
+                            }
+                        }
+                        if (containerData.getSpeedData() != null) {
+                            for (Map.Entry<UUID, Set<String>> entry : containerData.getSpeedData().entrySet()) {
+                                playerSpeeds.put(entry.getKey(), ConcurrentHashMap.newKeySet());
+                                playerSpeeds.get(entry.getKey()).addAll(entry.getValue());
+                            }
+                        }
+                        
+                        plugin.getLogger().info(String.format("成功加载新格式数据: %d 条飞行记录, %d 条特效记录, %d 条速度记录", 
+                            data.size(), playerEffects.size(), playerSpeeds.size()));
+                    } else {
+                        // 尝试加载旧格式
+                        try (Reader oldReader = new BufferedReader(new FileReader(dataFile))) {
+                            Type type = new TypeToken<Map<UUID, Long>>(){}.getType();
+                            Map<UUID, Long> loadedData = gson.fromJson(oldReader, type);
+                            
+                            if (loadedData != null) {
+                                data.clear();
+                                data.putAll(loadedData);
+                                
+                                plugin.getLogger().info(String.format("成功加载旧格式数据 %d 条玩家记录，将在下次保存时升级格式", data.size()));
+                                needsSave.set(true); // 标记需要保存以升级格式
+                            } else {
+                                plugin.getLogger().warning("数据文件为空或格式不正确");
+                            }
+                        }
+                    }
+                } finally {
+                    dataLock.writeLock().unlock();
+                }
+                
+                // 清理过期数据
+                cleanExpiredData();
             }
         } catch (Exception e) {
             plugin.getLogger().severe("加载数据失败: " + e.getMessage());
@@ -335,10 +380,15 @@ public class JsonStorage implements Storage {
         // 使用临时文件避免写入过程中的数据损坏
         File tempFile = new File(dataFile.getParentFile(), dataFile.getName() + ".tmp");
         
-        Map<UUID, Long> dataToSave;
+        JsonDataContainer dataToSave;
         dataLock.readLock().lock();
         try {
-            dataToSave = new HashMap<>(data);
+            // 创建包含所有数据的容器
+            dataToSave = new JsonDataContainer(
+                new HashMap<>(data),
+                getAllPlayerEffects(),
+                getAllPlayerSpeeds()
+            );
         } finally {
             dataLock.readLock().unlock();
         }
@@ -401,5 +451,119 @@ public class JsonStorage implements Storage {
      */
     public void cleanupExpiredData() {
         cleanExpiredData();
+    }
+
+    // ============= 特效购买记录相关方法 =============
+    
+    @Override
+    public void addPlayerEffect(UUID uuid, String effectName) {
+        dataLock.writeLock().lock();
+        try {
+            playerEffects.computeIfAbsent(uuid, k -> ConcurrentHashMap.newKeySet()).add(effectName);
+            needsSave.set(true);
+            writeOperations++;
+        } finally {
+            dataLock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public void removePlayerEffect(UUID uuid, String effectName) {
+        dataLock.writeLock().lock();
+        try {
+            Set<String> effects = playerEffects.get(uuid);
+            if (effects != null) {
+                effects.remove(effectName);
+                if (effects.isEmpty()) {
+                    playerEffects.remove(uuid);
+                }
+                needsSave.set(true);
+                writeOperations++;
+            }
+        } finally {
+            dataLock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public Set<String> getPlayerEffects(UUID uuid) {
+        dataLock.readLock().lock();
+        try {
+            Set<String> effects = playerEffects.get(uuid);
+            return effects != null ? new HashSet<>(effects) : new HashSet<>();
+        } finally {
+            dataLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<UUID, Set<String>> getAllPlayerEffects() {
+        dataLock.readLock().lock();
+        try {
+            Map<UUID, Set<String>> result = new HashMap<>();
+            for (Map.Entry<UUID, Set<String>> entry : playerEffects.entrySet()) {
+                result.put(entry.getKey(), new HashSet<>(entry.getValue()));
+            }
+            return result;
+        } finally {
+            dataLock.readLock().unlock();
+        }
+    }
+
+    // ============= 速度购买记录相关方法 =============
+    
+    @Override
+    public void addPlayerSpeed(UUID uuid, String speedName) {
+        dataLock.writeLock().lock();
+        try {
+            playerSpeeds.computeIfAbsent(uuid, k -> ConcurrentHashMap.newKeySet()).add(speedName);
+            needsSave.set(true);
+            writeOperations++;
+        } finally {
+            dataLock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public void removePlayerSpeed(UUID uuid, String speedName) {
+        dataLock.writeLock().lock();
+        try {
+            Set<String> speeds = playerSpeeds.get(uuid);
+            if (speeds != null) {
+                speeds.remove(speedName);
+                if (speeds.isEmpty()) {
+                    playerSpeeds.remove(uuid);
+                }
+                needsSave.set(true);
+                writeOperations++;
+            }
+        } finally {
+            dataLock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public Set<String> getPlayerSpeeds(UUID uuid) {
+        dataLock.readLock().lock();
+        try {
+            Set<String> speeds = playerSpeeds.get(uuid);
+            return speeds != null ? new HashSet<>(speeds) : new HashSet<>();
+        } finally {
+            dataLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<UUID, Set<String>> getAllPlayerSpeeds() {
+        dataLock.readLock().lock();
+        try {
+            Map<UUID, Set<String>> result = new HashMap<>();
+            for (Map.Entry<UUID, Set<String>> entry : playerSpeeds.entrySet()) {
+                result.put(entry.getKey(), new HashSet<>(entry.getValue()));
+            }
+            return result;
+        } finally {
+            dataLock.readLock().unlock();
+        }
     }
 }

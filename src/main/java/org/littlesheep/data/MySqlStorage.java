@@ -6,7 +6,9 @@ import org.littlesheep.utils.ExceptionHandler;
 
 import java.sql.*;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -166,18 +168,42 @@ public class MySqlStorage implements Storage {
      * 创建表结构
      */
     private void createTable(Connection connection) throws SQLException {
-        String createTableSQL = String.format(
-            "CREATE TABLE IF NOT EXISTS %s (" +
-            "uuid VARCHAR(36) PRIMARY KEY, " +
-            "end_time BIGINT NOT NULL, " +
-            "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
-            "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" +
-            ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
-            table
-        );
-        
         try (Statement stmt = connection.createStatement()) {
-            stmt.executeUpdate(createTableSQL);
+            // 飞行时间表
+            String createFlightTableSQL = String.format(
+                "CREATE TABLE IF NOT EXISTS %s (" +
+                "uuid VARCHAR(36) PRIMARY KEY, " +
+                "end_time BIGINT NOT NULL, " +
+                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" +
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+                table
+            );
+            stmt.executeUpdate(createFlightTableSQL);
+            
+            // 特效购买记录表
+            String createEffectsTableSQL = String.format(
+                "CREATE TABLE IF NOT EXISTS %s_effects (" +
+                "uuid VARCHAR(36), " +
+                "effect_name VARCHAR(50), " +
+                "purchased_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                "PRIMARY KEY (uuid, effect_name)" +
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+                table
+            );
+            stmt.executeUpdate(createEffectsTableSQL);
+            
+            // 速度购买记录表
+            String createSpeedsTableSQL = String.format(
+                "CREATE TABLE IF NOT EXISTS %s_speeds (" +
+                "uuid VARCHAR(36), " +
+                "speed_name VARCHAR(50), " +
+                "purchased_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                "PRIMARY KEY (uuid, speed_name)" +
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+                table
+            );
+            stmt.executeUpdate(createSpeedsTableSQL);
         }
     }
 
@@ -372,5 +398,131 @@ public class MySqlStorage implements Storage {
         return String.format("MySQL存储统计: %s | %s", 
             getPoolStatus(), 
             exceptionHandler != null ? exceptionHandler.getStatistics() : "异常处理器未初始化");
+    }
+
+    // ============= 特效购买记录相关方法 =============
+    
+    @Override
+    public void addPlayerEffect(UUID uuid, String effectName) {
+        executeWithRetry("添加玩家特效", connection -> {
+            String sql = String.format("INSERT INTO %s_effects (uuid, effect_name) VALUES (?, ?) " +
+                "ON DUPLICATE KEY UPDATE purchased_at = CURRENT_TIMESTAMP", table);
+            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.setString(1, uuid.toString());
+                stmt.setString(2, effectName);
+                stmt.executeUpdate();
+            }
+            return null;
+        });
+    }
+
+    @Override
+    public void removePlayerEffect(UUID uuid, String effectName) {
+        executeWithRetry("删除玩家特效", connection -> {
+            String sql = String.format("DELETE FROM %s_effects WHERE uuid = ? AND effect_name = ?", table);
+            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.setString(1, uuid.toString());
+                stmt.setString(2, effectName);
+                stmt.executeUpdate();
+            }
+            return null;
+        });
+    }
+
+    @Override
+    public Set<String> getPlayerEffects(UUID uuid) {
+        return executeWithRetry("获取玩家特效", connection -> {
+            Set<String> effects = new HashSet<>();
+            String sql = String.format("SELECT effect_name FROM %s_effects WHERE uuid = ?", table);
+            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.setString(1, uuid.toString());
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        effects.add(rs.getString("effect_name"));
+                    }
+                }
+            }
+            return effects;
+        });
+    }
+
+    @Override
+    public Map<UUID, Set<String>> getAllPlayerEffects() {
+        return executeWithRetry("获取所有玩家特效", connection -> {
+            Map<UUID, Set<String>> allEffects = new HashMap<>();
+            String sql = String.format("SELECT uuid, effect_name FROM %s_effects", table);
+            try (Statement stmt = connection.createStatement();
+                 ResultSet rs = stmt.executeQuery(sql)) {
+                while (rs.next()) {
+                    UUID uuid = UUID.fromString(rs.getString("uuid"));
+                    String effectName = rs.getString("effect_name");
+                    allEffects.computeIfAbsent(uuid, k -> new HashSet<>()).add(effectName);
+                }
+            }
+            return allEffects;
+        });
+    }
+
+    // ============= 速度购买记录相关方法 =============
+    
+    @Override
+    public void addPlayerSpeed(UUID uuid, String speedName) {
+        executeWithRetry("添加玩家速度", connection -> {
+            String sql = String.format("INSERT INTO %s_speeds (uuid, speed_name) VALUES (?, ?) " +
+                "ON DUPLICATE KEY UPDATE purchased_at = CURRENT_TIMESTAMP", table);
+            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.setString(1, uuid.toString());
+                stmt.setString(2, speedName);
+                stmt.executeUpdate();
+            }
+            return null;
+        });
+    }
+
+    @Override
+    public void removePlayerSpeed(UUID uuid, String speedName) {
+        executeWithRetry("删除玩家速度", connection -> {
+            String sql = String.format("DELETE FROM %s_speeds WHERE uuid = ? AND speed_name = ?", table);
+            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.setString(1, uuid.toString());
+                stmt.setString(2, speedName);
+                stmt.executeUpdate();
+            }
+            return null;
+        });
+    }
+
+    @Override
+    public Set<String> getPlayerSpeeds(UUID uuid) {
+        return executeWithRetry("获取玩家速度", connection -> {
+            Set<String> speeds = new HashSet<>();
+            String sql = String.format("SELECT speed_name FROM %s_speeds WHERE uuid = ?", table);
+            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.setString(1, uuid.toString());
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        speeds.add(rs.getString("speed_name"));
+                    }
+                }
+            }
+            return speeds;
+        });
+    }
+
+    @Override
+    public Map<UUID, Set<String>> getAllPlayerSpeeds() {
+        return executeWithRetry("获取所有玩家速度", connection -> {
+            Map<UUID, Set<String>> allSpeeds = new HashMap<>();
+            String sql = String.format("SELECT uuid, speed_name FROM %s_speeds", table);
+            try (Statement stmt = connection.createStatement();
+                 ResultSet rs = stmt.executeQuery(sql)) {
+                while (rs.next()) {
+                    UUID uuid = UUID.fromString(rs.getString("uuid"));
+                    String speedName = rs.getString("speed_name");
+                    allSpeeds.computeIfAbsent(uuid, k -> new HashSet<>()).add(speedName);
+                }
+            }
+            return allSpeeds;
+        });
     }
 }

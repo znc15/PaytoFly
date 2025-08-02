@@ -128,3 +128,47 @@ messages:
 
   survival:
     flight-disabled: "&cYou are in survival mode, please purchase flight time or use creative mode"
+
+  # Flight Effects System
+  effects-disabled: "&cFlight effects system is disabled"
+  effect-current: "&eCurrent effect: &b{effect}"
+  effect-available: "&eAvailable effects: &f{effects}"
+  effect-list-header: "&6=== Available Flight Effects ==="
+  effect-no-permission: "&cYou don't have permission to use this effect"
+  effect-set-inactive: "&aSet effect to &b{effect}&a, will activate when flying starts"
+  effect-disabled: "&aFlight effects disabled"
+  effect-usage: "&cUsage: /fly effect <list|set|buy|off|info>"
+  effect-usage-set: "&cUsage: /fly effect set <effect_name>"
+  effect-usage-buy: "&cUsage: /fly effect buy <effect_name>"
+  effect-started: "&aPlayer {player} started using {effect} effect"
+  effects-cleanup: "&aFlight effects system cleaned up"
+  effect-already-owned: "&cYou already own this effect!"
+  effect-not-for-sale: "&cThis effect is not for sale"
+  effect-purchase-success: "&aSuccessfully purchased effect &b{effect} &afor &6{price} &acoins!"
+  effect-purchase-failed: "&cPurchase failed! Insufficient balance or system error"
+
+  # Flight Speed Control
+  speed-disabled: "&cFlight speed control is disabled"
+  speed-no-permission: "&cYou don't have permission to use {speed} speed"
+  speed-not-flying: "&cYou are not currently flying, cannot set flight speed"
+  speed-changed: "&aFlight speed set to {speed} &7({value})"
+  speed-set-log: "&aPlayer {player} set flight speed to {speed} ({value})"
+  speed-current: "&eCurrent speed: {speed}"
+  speed-available: "&eAvailable speeds:"
+  speed-list-header: "&6=== Available Flight Speeds ==="
+  speed-max-reached: "&cYou are already at maximum speed!"
+  speed-min-reached: "&cYou are already at minimum speed!"
+  speed-usage: "&cUsage: /fly speed <list|set|buy|up|down|reset|info>"
+  speed-usage-set: "&cUsage: /fly speed set <speed_name>"
+  speed-usage-buy: "&cUsage: /fly speed buy <speed_name>"
+  speed-cleanup: "&aFlight speed system cleaned up"
+  speed-already-owned: "&cYou already own this speed level!"
+  speed-not-for-sale: "&cThis speed level is not for sale"
+  speed-purchase-success: "&aSuccessfully purchased speed {speed} &afor &6{price} &acoins!"
+  speed-purchase-failed: "&cPurchase failed! Insufficient balance or system error"
+
+  # MHDF-Tools Sync
+  mhdf-sync-success: "&aSuccessfully synced flight permissions for player {player} to MHDF-Tools"
+  mhdf-sync-failed: "&cFailed to sync MHDF-Tools flight permissions: {error}"
+  mhdf-disable-success: "&aSuccessfully disabled MHDF-Tools flight permissions for player {player}"
+  mhdf-disable-failed: "&cFailed to sync MHDF-Tools flight disable: {error}"

@@ -5,7 +5,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.sql.*;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 public class SqliteStorage implements Storage {
@@ -32,10 +34,27 @@ public class SqliteStorage implements Storage {
 
     private void createTable() throws SQLException {
         try (Statement stmt = connection.createStatement()) {
+            // 飞行时间表
             stmt.executeUpdate(
                 "CREATE TABLE IF NOT EXISTS player_flight_data (" +
                 "uuid TEXT PRIMARY KEY, " +
                 "end_time INTEGER)"
+            );
+            
+            // 特效购买记录表
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS player_effects (" +
+                "uuid TEXT, " +
+                "effect_name TEXT, " +
+                "PRIMARY KEY (uuid, effect_name))"
+            );
+            
+            // 速度购买记录表
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS player_speeds (" +
+                "uuid TEXT, " +
+                "speed_name TEXT, " +
+                "PRIMARY KEY (uuid, speed_name))"
             );
         }
     }
@@ -106,5 +125,127 @@ public class SqliteStorage implements Storage {
             plugin.getLogger().severe("获取所有玩家数据时出错: " + e.getMessage());
         }
         return data;
+    }
+
+    // ============= 特效购买记录相关方法 =============
+    
+    @Override
+    public void addPlayerEffect(UUID uuid, String effectName) {
+        try (PreparedStatement stmt = connection.prepareStatement(
+            "INSERT OR REPLACE INTO player_effects (uuid, effect_name) VALUES (?, ?)"
+        )) {
+            stmt.setString(1, uuid.toString());
+            stmt.setString(2, effectName);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            plugin.getLogger().severe("添加玩家特效时出错: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void removePlayerEffect(UUID uuid, String effectName) {
+        try (PreparedStatement stmt = connection.prepareStatement(
+            "DELETE FROM player_effects WHERE uuid = ? AND effect_name = ?"
+        )) {
+            stmt.setString(1, uuid.toString());
+            stmt.setString(2, effectName);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            plugin.getLogger().severe("删除玩家特效时出错: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public Set<String> getPlayerEffects(UUID uuid) {
+        Set<String> effects = new HashSet<>();
+        try (PreparedStatement stmt = connection.prepareStatement(
+            "SELECT effect_name FROM player_effects WHERE uuid = ?"
+        )) {
+            stmt.setString(1, uuid.toString());
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                effects.add(rs.getString("effect_name"));
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().severe("获取玩家特效时出错: " + e.getMessage());
+        }
+        return effects;
+    }
+
+    @Override
+    public Map<UUID, Set<String>> getAllPlayerEffects() {
+        Map<UUID, Set<String>> allEffects = new HashMap<>();
+        try (Statement stmt = connection.createStatement()) {
+            ResultSet rs = stmt.executeQuery("SELECT * FROM player_effects");
+            while (rs.next()) {
+                UUID uuid = UUID.fromString(rs.getString("uuid"));
+                String effectName = rs.getString("effect_name");
+                allEffects.computeIfAbsent(uuid, k -> new HashSet<>()).add(effectName);
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().severe("获取所有玩家特效时出错: " + e.getMessage());
+        }
+        return allEffects;
+    }
+
+    // ============= 速度购买记录相关方法 =============
+    
+    @Override
+    public void addPlayerSpeed(UUID uuid, String speedName) {
+        try (PreparedStatement stmt = connection.prepareStatement(
+            "INSERT OR REPLACE INTO player_speeds (uuid, speed_name) VALUES (?, ?)"
+        )) {
+            stmt.setString(1, uuid.toString());
+            stmt.setString(2, speedName);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            plugin.getLogger().severe("添加玩家速度时出错: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void removePlayerSpeed(UUID uuid, String speedName) {
+        try (PreparedStatement stmt = connection.prepareStatement(
+            "DELETE FROM player_speeds WHERE uuid = ? AND speed_name = ?"
+        )) {
+            stmt.setString(1, uuid.toString());
+            stmt.setString(2, speedName);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            plugin.getLogger().severe("删除玩家速度时出错: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public Set<String> getPlayerSpeeds(UUID uuid) {
+        Set<String> speeds = new HashSet<>();
+        try (PreparedStatement stmt = connection.prepareStatement(
+            "SELECT speed_name FROM player_speeds WHERE uuid = ?"
+        )) {
+            stmt.setString(1, uuid.toString());
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                speeds.add(rs.getString("speed_name"));
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().severe("获取玩家速度时出错: " + e.getMessage());
+        }
+        return speeds;
+    }
+
+    @Override
+    public Map<UUID, Set<String>> getAllPlayerSpeeds() {
+        Map<UUID, Set<String>> allSpeeds = new HashMap<>();
+        try (Statement stmt = connection.createStatement()) {
+            ResultSet rs = stmt.executeQuery("SELECT * FROM player_speeds");
+            while (rs.next()) {
+                UUID uuid = UUID.fromString(rs.getString("uuid"));
+                String speedName = rs.getString("speed_name");
+                allSpeeds.computeIfAbsent(uuid, k -> new HashSet<>()).add(speedName);
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().severe("获取所有玩家速度时出错: " + e.getMessage());
+        }
+        return allSpeeds;
     }
 } 

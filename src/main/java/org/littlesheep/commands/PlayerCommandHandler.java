@@ -36,6 +36,11 @@ public class PlayerCommandHandler {
             case "time":
             case "check":
                 return handleTimeCheckCommand(player);
+            case "effect":
+            case "effects":
+                return handleEffectCommand(player, args);
+            case "speed":
+                return handleSpeedCommand(player, args);
             default:
                 return handlePurchaseCommand(player, args);
         }
@@ -316,6 +321,287 @@ public class PlayerCommandHandler {
             } catch (Exception e) {
                 plugin.getLogger().warning(plugin.getLang().getMessage("mhdf-sync-failed", "{error}", e.getMessage()));
             }
+        }
+    }
+
+    /**
+     * 处理特效命令
+     */
+    private boolean handleEffectCommand(Player player, String[] args) {
+        if (!plugin.getConfig().getBoolean("flight-effects.enabled", true)) {
+            player.sendMessage(prefix + plugin.getLang().getMessage("effects-disabled"));
+            return true;
+        }
+
+        if (args.length == 1) {
+            // 显示特效信息
+            showEffectInfo(player);
+            return true;
+        }
+
+        String action = args[1].toLowerCase();
+        
+        switch (action) {
+            case "list":
+                showAvailableEffects(player);
+                break;
+            case "set":
+                if (args.length < 3) {
+                    player.sendMessage(prefix + plugin.getLang().getMessage("effect-usage-set"));
+                    return true;
+                }
+                setPlayerEffect(player, args[2]);
+                break;
+            case "buy":
+            case "purchase":
+                if (args.length < 3) {
+                    player.sendMessage(prefix + plugin.getLang().getMessage("effect-usage-buy"));
+                    return true;
+                }
+                purchasePlayerEffect(player, args[2]);
+                break;
+            case "off":
+            case "disable":
+                disablePlayerEffect(player);
+                break;
+            case "info":
+                showEffectInfo(player);
+                break;
+            default:
+                player.sendMessage(prefix + plugin.getLang().getMessage("effect-usage"));
+                break;
+        }
+        
+        return true;
+    }
+
+    /**
+     * 处理速度命令
+     */
+    private boolean handleSpeedCommand(Player player, String[] args) {
+        if (!plugin.getConfig().getBoolean("flight-speed.enabled", true)) {
+            player.sendMessage(prefix + plugin.getLang().getMessage("speed-disabled"));
+            return true;
+        }
+
+        if (args.length == 1) {
+            // 显示速度信息
+            showSpeedInfo(player);
+            return true;
+        }
+
+        String action = args[1].toLowerCase();
+        
+        switch (action) {
+            case "list":
+                showAvailableSpeeds(player);
+                break;
+            case "set":
+                if (args.length < 3) {
+                    player.sendMessage(prefix + plugin.getLang().getMessage("speed-usage-set"));
+                    return true;
+                }
+                setPlayerSpeed(player, args[2]);
+                break;
+            case "buy":
+            case "purchase":
+                if (args.length < 3) {
+                    player.sendMessage(prefix + plugin.getLang().getMessage("speed-usage-buy"));
+                    return true;
+                }
+                purchasePlayerSpeed(player, args[2]);
+                break;
+            case "up":
+            case "upgrade":
+                upgradePlayerSpeed(player);
+                break;
+            case "down":
+            case "downgrade":
+                downgradePlayerSpeed(player);
+                break;
+            case "reset":
+                resetPlayerSpeed(player);
+                break;
+            case "info":
+                showSpeedInfo(player);
+                break;
+            default:
+                player.sendMessage(prefix + plugin.getLang().getMessage("speed-usage"));
+                break;
+        }
+        
+        return true;
+    }
+
+    /**
+     * 显示特效信息
+     */
+    private void showEffectInfo(Player player) {
+        var currentEffect = plugin.getEffectManager().getPlayerEffect(player);
+        var availableEffects = plugin.getEffectManager().getAvailableEffects(player);
+        
+        player.sendMessage(prefix + plugin.getLang().getMessage("effect-current", 
+            "{effect}", currentEffect.getName()));
+        
+        StringBuilder effects = new StringBuilder();
+        for (int i = 0; i < availableEffects.size(); i++) {
+            effects.append(availableEffects.get(i).getName());
+            if (i < availableEffects.size() - 1) {
+                effects.append(", ");
+            }
+        }
+        
+        player.sendMessage(prefix + plugin.getLang().getMessage("effect-available", 
+            "{effects}", effects.toString()));
+    }
+
+    /**
+     * 显示可用特效列表
+     */
+    private void showAvailableEffects(Player player) {
+        var availableEffects = plugin.getEffectManager().getAvailableEffects(player);
+        
+        player.sendMessage(prefix + plugin.getLang().getMessage("effect-list-header"));
+        for (var effect : availableEffects) {
+            player.sendMessage("§7- §b" + effect.getName() + " §7(等级 " + effect.getLevel() + ")");
+        }
+    }
+
+    /**
+     * 设置玩家特效
+     */
+    private void setPlayerEffect(Player player, String effectName) {
+        var effectType = org.littlesheep.effects.FlightEffectManager.FlightEffectType.fromString(effectName);
+        
+        if (!plugin.getEffectManager().hasEffectPermission(player, effectType)) {
+            player.sendMessage(prefix + plugin.getLang().getMessage("effect-no-permission"));
+            return;
+        }
+        
+        if (player.isFlying()) {
+            plugin.getEffectManager().startFlightEffect(player, effectType);
+        } else {
+            plugin.getEffectManager().setPlayerEffect(player, effectType);
+            player.sendMessage(prefix + plugin.getLang().getMessage("effect-set-inactive", 
+                "{effect}", effectType.getName()));
+        }
+    }
+
+    /**
+     * 禁用玩家特效
+     */
+    private void disablePlayerEffect(Player player) {
+        plugin.getEffectManager().stopFlightEffect(player);
+        plugin.getEffectManager().setPlayerEffect(player, 
+            org.littlesheep.effects.FlightEffectManager.FlightEffectType.NONE);
+        player.sendMessage(prefix + plugin.getLang().getMessage("effect-disabled"));
+    }
+
+    /**
+     * 显示速度信息
+     */
+    private void showSpeedInfo(Player player) {
+        String speedInfo = plugin.getSpeedManager().getSpeedInfo(player);
+        player.sendMessage(prefix + speedInfo);
+    }
+
+    /**
+     * 显示可用速度列表
+     */
+    private void showAvailableSpeeds(Player player) {
+        var availableSpeeds = plugin.getSpeedManager().getAvailableSpeeds(player);
+        
+        player.sendMessage(prefix + plugin.getLang().getMessage("speed-list-header"));
+        for (var speed : availableSpeeds) {
+            String status = speed == plugin.getSpeedManager().getPlayerSpeed(player) ? "§a当前" : "§7可用";
+            player.sendMessage("§7- " + speed.getDisplayName() + " §7(" + status + "§7)");
+        }
+    }
+
+    /**
+     * 设置玩家速度
+     */
+    private void setPlayerSpeed(Player player, String speedName) {
+        var speedLevel = org.littlesheep.speed.FlightSpeedManager.FlightSpeedLevel.fromString(speedName);
+        plugin.getSpeedManager().setFlightSpeed(player, speedLevel);
+    }
+
+    /**
+     * 升级玩家速度
+     */
+    private void upgradePlayerSpeed(Player player) {
+        plugin.getSpeedManager().upgradeSpeed(player);
+    }
+
+    /**
+     * 降级玩家速度
+     */
+    private void downgradePlayerSpeed(Player player) {
+        plugin.getSpeedManager().downgradeSpeed(player);
+    }
+
+    /**
+     * 重置玩家速度
+     */
+    private void resetPlayerSpeed(Player player) {
+        plugin.getSpeedManager().resetPlayerSpeed(player);
+    }
+
+    /**
+     * 购买特效
+     */
+    private void purchasePlayerEffect(Player player, String effectName) {
+        var effectType = org.littlesheep.effects.FlightEffectManager.FlightEffectType.fromString(effectName);
+        
+        // 检查是否已拥有
+        if (plugin.getEffectManager().hasEffectPermission(player, effectType)) {
+            player.sendMessage(prefix + plugin.getLang().getMessage("effect-already-owned"));
+            return;
+        }
+        
+        // 获取价格
+        double price = plugin.getEffectManager().getEffectPrice(effectType);
+        if (price <= 0) {
+            player.sendMessage(prefix + plugin.getLang().getMessage("effect-not-for-sale"));
+            return;
+        }
+        
+        // 尝试购买
+        if (plugin.getEffectManager().purchaseEffect(player, effectType)) {
+            player.sendMessage(prefix + plugin.getLang().getMessage("effect-purchase-success", 
+                "{effect}", effectType.getName(),
+                "{price}", String.format("%.2f", price)));
+        } else {
+            player.sendMessage(prefix + plugin.getLang().getMessage("effect-purchase-failed"));
+        }
+    }
+
+    /**
+     * 购买速度
+     */
+    private void purchasePlayerSpeed(Player player, String speedName) {
+        var speedLevel = org.littlesheep.speed.FlightSpeedManager.FlightSpeedLevel.fromString(speedName);
+        
+        // 检查是否已拥有
+        if (plugin.getSpeedManager().hasSpeedPermission(player, speedLevel)) {
+            player.sendMessage(prefix + plugin.getLang().getMessage("speed-already-owned"));
+            return;
+        }
+        
+        // 获取价格
+        double price = plugin.getSpeedManager().getSpeedPrice(speedLevel);
+        if (price <= 0) {
+            player.sendMessage(prefix + plugin.getLang().getMessage("speed-not-for-sale"));
+            return;
+        }
+        
+        // 尝试购买
+        if (plugin.getSpeedManager().purchaseSpeed(player, speedLevel)) {
+            player.sendMessage(prefix + plugin.getLang().getMessage("speed-purchase-success", 
+                "{speed}", speedLevel.getDisplayName(),
+                "{price}", String.format("%.2f", price)));
+        } else {
+            player.sendMessage(prefix + plugin.getLang().getMessage("speed-purchase-failed"));
         }
     }
 

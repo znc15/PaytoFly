@@ -88,6 +88,18 @@ public class EconomyManager {
     }
     
     /**
+     * 检查玩家是否有足够的余额
+     * 
+     * @param player 玩家
+     * @param amount 金额
+     * @return 是否有足够余额
+     */
+    public boolean hasBalance(OfflinePlayer player, double amount) {
+        if (currentAdapter == null) return false;
+        return currentAdapter.getBalance(player) >= amount;
+    }
+    
+    /**
      * 从玩家账户扣除金额
      * 
      * @param player 玩家

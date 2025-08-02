@@ -31,6 +31,8 @@ import org.littlesheep.commands.CommandHandler;
 import org.littlesheep.utils.CustomTimeManager;
 import org.littlesheep.utils.ResourceManager;
 import org.littlesheep.utils.ExceptionHandler;
+import org.littlesheep.effects.FlightEffectManager;
+import org.littlesheep.speed.FlightSpeedManager;
 import org.bukkit.ChatColor;
 
 import java.io.File;
@@ -58,6 +60,8 @@ public final class paytofly extends JavaPlugin {
     private ResourceManager resourceManager;
     private ExceptionHandler exceptionHandler;
     private CommandHandler commandHandler;
+    private FlightEffectManager effectManager;
+    private FlightSpeedManager speedManager;
 
     @Override
     public void onEnable() {
@@ -181,6 +185,24 @@ public final class paytofly extends JavaPlugin {
         
         // 初始化命令处理器
         commandHandler = new CommandHandler(this);
+        
+        // 初始化飞行特效管理器
+        effectManager = new FlightEffectManager(this);
+        // 注册特效管理器清理钩子
+        resourceManager.registerShutdownHook(() -> {
+            if (effectManager != null) {
+                effectManager.cleanup();
+            }
+        });
+        
+        // 初始化飞行速度管理器
+        speedManager = new FlightSpeedManager(this);
+        // 注册速度管理器清理钩子
+        resourceManager.registerShutdownHook(() -> {
+            if (speedManager != null) {
+                speedManager.cleanup();
+            }
+        });
         
         getLogger().info(lang.getMessage("plugin-enabled-detail"));
         getLogger().info(lang.getMessage("plugin-splash"));
@@ -362,6 +384,14 @@ public final class paytofly extends JavaPlugin {
 
     public FlightShopGUI getFlightShopGUI() {
         return shopGUI;
+    }
+
+    public FlightEffectManager getEffectManager() {
+        return effectManager;
+    }
+
+    public FlightSpeedManager getSpeedManager() {
+        return speedManager;
     }
 
     /**
