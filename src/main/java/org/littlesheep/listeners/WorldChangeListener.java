@@ -7,6 +7,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.littlesheep.paytofly;
 
 import java.util.List;
@@ -155,5 +156,78 @@ public class WorldChangeListener implements Listener {
                 syncMHDFToolsFlight(player, endTime);
             }
         }, 20L); // 20 ticks = 1 second
+    }
+    
+    // 添加传送事件监听
+    @EventHandler
+    public void onPlayerTeleport(PlayerTeleportEvent event) {
+        final Player player = event.getPlayer();
+        final World fromWorld = event.getFrom().getWorld();
+        final World toWorld = event.getTo().getWorld();
+        
+        // 如果是跨世界传送，WorldChangeListener已经处理，不需要重复处理
+        if (fromWorld != null && toWorld != null && !fromWorld.equals(toWorld)) {
+            return;
+        }
+        
+        // 延迟几tick检查飞行状态，确保传送完成
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            // 如果玩家已经离线，跳过处理
+            if (!player.isOnline()) {
+                return;
+            }
+            
+            checkAndRestoreFlightStatus(player);
+        }, 3L); // 3 ticks = 0.15 seconds
+    }
+    
+    /**
+     * 检查并恢复玩家的飞行状态
+     * @param player 玩家
+     */
+    private void checkAndRestoreFlightStatus(Player player) {
+        World world = player.getWorld();
+        String worldName = world.getName();
+        
+        // 获取配置
+        List<String> freeWorlds = plugin.getConfig().getStringList("worlds.free-fly");
+        List<String> disabledWorlds = plugin.getConfig().getStringList("worlds.disabled");
+        boolean infiniteEnabled = plugin.getConfig().getBoolean("settings.infinite-flight", true);
+        boolean disableInfiniteInRestricted = plugin.getConfig().getBoolean("settings.disable-infinite-in-restricted", true);
+        
+        // 检查是否是禁飞世界
+        if (disabledWorlds.contains(worldName)) {
+            if (disableInfiniteInRestricted || !player.hasPermission("paytofly.infinite")) {
+                player.setAllowFlight(false);
+                player.setFlying(false);
+                syncMHDFToolsDisableFlight(player);
+            }
+            return;
+        }
+        
+        // 检查是否是免费飞行世界
+        if (freeWorlds.contains(worldName)) {
+            player.setAllowFlight(true);
+            syncMHDFToolsEnableFlight(player);
+            return;
+        }
+        
+        // 检查无限飞行权限
+        if (infiniteEnabled && player.hasPermission("paytofly.infinite")) {
+            player.setAllowFlight(true);
+            syncMHDFToolsEnableFlight(player);
+            return;
+        }
+        
+        // 检查购买状态
+        Long endTime = plugin.getStorage().getPlayerFlightTime(player.getUniqueId());
+        if (endTime != null && endTime > System.currentTimeMillis()) {
+            player.setAllowFlight(true);
+            syncMHDFToolsFlight(player, endTime);
+        } else {
+            player.setAllowFlight(false);
+            player.setFlying(false);
+            syncMHDFToolsDisableFlight(player);
+        }
     }
 } 

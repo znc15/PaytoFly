@@ -1,9 +1,10 @@
 package org.littlesheep.data;
 
+import java.io.Closeable;
 import java.util.Map;
 import java.util.UUID;
 
-public interface Storage {
+public interface Storage extends Closeable {
     void init();
     void close();
     void setPlayerFlightTime(UUID uuid, long endTime);

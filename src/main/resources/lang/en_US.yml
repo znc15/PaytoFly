@@ -51,6 +51,7 @@ messages:
     - "&e/fly bypass <player> [remove] &7- &fGive/Remove player flight bypass permission &c(Admin)"
     - "&e/fly reload &7- &fReload configuration &c(Admin)"
     - "&e/fly test &7- &fTest PlaceholderAPI variables &c(Admin)"
+    - "&e/fly stats &7- &fView system statistics &c(Admin)"
   help-time-units:
     - "&bTime Unit Guide:"
     - "&am - Minutes (e.g.: /fly 30m)"
@@ -115,6 +116,7 @@ messages:
   time-check-remaining: "&aYour flight permission has &e{remaining} &aremaining"
   time-check-expired: "&cYour flight permission has expired. Please purchase again."
   time-check-infinite: "&aYou have infinite flight permission!"
+  time-check-purchased-with-infinite: "&aPurchased flight time remaining: &e{remaining} &7(&aInfinite permission available&7)"
 
   # Time Limit Messages
   time-limit: "&cMinimum purchase time is {min} minutes, maximum is {max} minutes"

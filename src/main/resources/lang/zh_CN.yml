@@ -52,6 +52,7 @@ messages:
     - "&e/fly bypass <玩家名> [remove] &7- &f给予/移除玩家飞行绕过权限 &c(管理员)"
     - "&e/fly reload &7- &f重载配置文件 &c(管理员)"
     - "&e/fly test &7- &f测试 PlaceholderAPI 变量 &c(管理员)"
+    - "&e/fly stats &7- &f查看系统统计信息 &c(管理员)"
     - "&b时长单位说明:"
     - "&am - 分钟 (例如: /fly 30m)"
     - "&ah - 小时 (例如: /fly 5h)"
@@ -115,6 +116,7 @@ messages:
   time-check-remaining: "&a您的飞行权限&7剩余时间: &e{remaining}"
   time-check-expired: "&c您的飞行权限已过期，请重新购买。"
   time-check-infinite: "&a您拥有无限飞行权限！"
+  time-check-purchased-with-infinite: "&a您购买的飞行时间&7剩余: &e{remaining} &7(&a拥有无限权限&7)"
 
   # 时间限制提示
   time-limit: "&c最低购买时间为 {min} 分钟，最高为 {max} 分钟"
@@ -165,7 +167,7 @@ messages:
   
   # 控制台命令相关
   console-player-command: "&c控制台只能执行管理员命令!"
-  console-unknown-command: "&c未知命令! 控制台可用命令: give, disable, reload, bypass"
+  console-unknown-command: "&c未知命令! 控制台可用命令: give, disable, reload, bypass, stats"
   
   # 系统消息补充
   economy-not-initialized: "&c经济系统未正确初始化，无法购买飞行权限！"

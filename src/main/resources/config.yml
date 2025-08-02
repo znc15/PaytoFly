@@ -53,6 +53,15 @@ storage:
   # 存储类型: JSON, SQLITE, MYSQL
   type: JSON
   
+  # JSON 存储设置 (仅在 type: JSON 时使用)
+  json:
+    # 自动保存间隔（秒）
+    save-interval: 30
+    # 是否启用备份
+    enable-backup: true
+    # 最大备份文件数量
+    max-backups: 5
+  
   # MySQL 设置 (仅在 type: MYSQL 时使用)
   mysql:
     host: localhost
@@ -61,10 +70,30 @@ storage:
     username: root
     password: password
     table: paytofly_data
+    # 连接池设置
+    pool:
+      max-connections: 5
+      connection-timeout: 30000
+      max-retries: 3
 
   # SQLite 设置 (仅在 type: SQLITE 时使用)
   sqlite:
     file: database.db
+
+# 缓存设置
+cache:
+  # 是否启用缓存
+  enabled: true
+  # 缓存最大容量
+  max-size: 1000
+  # 缓存生存时间（分钟）
+  ttl-minutes: 30
+  # 清理间隔（分钟）
+  cleanup-interval-minutes: 5
+  # 是否在启动时预加载数据
+  preload-on-init: true
+  # 写入模式：true=写穿透，false=写回
+  write-through: true
 
 # bStats 设置
 metrics:

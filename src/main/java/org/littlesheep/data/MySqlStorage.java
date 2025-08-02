@@ -2,121 +2,375 @@ package org.littlesheep.data;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.littlesheep.utils.ExceptionHandler;
 
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * MySQL存储实现，使用连接池和重试机制
+ */
 public class MySqlStorage implements Storage {
     private final JavaPlugin plugin;
-    private Connection connection;
     private final String host;
     private final int port;
     private final String database;
     private final String username;
     private final String password;
     private final String table;
+    
+    // 连接池参数
+    private final int maxConnections;
+    private final int connectionTimeout;
+    private final int maxRetries;
+    private final ExceptionHandler exceptionHandler;
+    
+    // 简单连接池实现
+    private final Map<Connection, Boolean> connectionPool = new ConcurrentHashMap<>();
+    private final AtomicInteger activeConnections = new AtomicInteger(0);
+    private final Object poolLock = new Object();
 
     public MySqlStorage(JavaPlugin plugin) {
         this.plugin = plugin;
         FileConfiguration config = plugin.getConfig();
+        
+        // 数据库配置
         this.host = config.getString("storage.mysql.host", "localhost");
         this.port = config.getInt("storage.mysql.port", 3306);
         this.database = config.getString("storage.mysql.database", "minecraft");
         this.username = config.getString("storage.mysql.username", "root");
         this.password = config.getString("storage.mysql.password", "password");
         this.table = config.getString("storage.mysql.table", "paytofly_data");
+        
+        // 连接池配置
+        this.maxConnections = config.getInt("storage.mysql.pool.max-connections", 5);
+        this.connectionTimeout = config.getInt("storage.mysql.pool.connection-timeout", 30000);
+        this.maxRetries = config.getInt("storage.mysql.pool.max-retries", 3);
+        
+        // 获取异常处理器
+        if (plugin instanceof org.littlesheep.paytofly) {
+            this.exceptionHandler = ((org.littlesheep.paytofly) plugin).getExceptionHandler();
+        } else {
+            this.exceptionHandler = new ExceptionHandler(plugin);
+        }
     }
 
     @Override
     public void init() {
         try {
-            Class.forName("com.mysql.jdbc.Driver");
-            connection = DriverManager.getConnection(
-                "jdbc:mysql://" + host + ":" + port + "/" + database, username, password
-            );
-            createTable();
+            // 使用新的MySQL驱动
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            
+            // 预创建一个连接来测试连接性
+            Connection testConnection = createNewConnection();
+            if (testConnection != null) {
+                createTable(testConnection);
+                returnConnection(testConnection);
+                plugin.getLogger().info("MySQL数据库连接成功，连接池已初始化");
+            } else {
+                throw new SQLException("无法创建测试连接");
+            }
         } catch (Exception e) {
             plugin.getLogger().severe("无法连接到MySQL数据库: " + e.getMessage());
+            throw new RuntimeException("MySQL初始化失败", e);
         }
     }
 
-    private void createTable() throws SQLException {
+    /**
+     * 创建新的数据库连接
+     */
+    private Connection createNewConnection() throws SQLException {
+        String url = String.format("jdbc:mysql://%s:%d/%s?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true",
+                host, port, database);
+        
+        Connection connection = DriverManager.getConnection(url, username, password);
+        connection.setAutoCommit(true);
+        
+        // 设置连接超时
         try (Statement stmt = connection.createStatement()) {
-            stmt.executeUpdate(
-                "CREATE TABLE IF NOT EXISTS " + table + " (" +
-                "uuid VARCHAR(36) PRIMARY KEY, " +
-                "end_time BIGINT)"
-            );
+            stmt.setQueryTimeout(30);
         }
+        
+        return connection;
+    }
+
+    /**
+     * 从连接池获取连接
+     */
+    private Connection getConnection() throws SQLException {
+        synchronized (poolLock) {
+            // 查找可用连接
+            for (Map.Entry<Connection, Boolean> entry : connectionPool.entrySet()) {
+                if (!entry.getValue()) { // 连接空闲
+                    Connection conn = entry.getKey();
+                    if (isConnectionValid(conn)) {
+                        connectionPool.put(conn, true); // 标记为使用中
+                        return conn;
+                    } else {
+                        // 移除无效连接
+                        connectionPool.remove(conn);
+                        try {
+                            conn.close();
+                        } catch (SQLException ignored) {}
+                    }
+                }
+            }
+            
+            // 如果没有可用连接且未达到最大连接数，创建新连接
+            if (activeConnections.get() < maxConnections) {
+                Connection newConnection = createNewConnection();
+                connectionPool.put(newConnection, true);
+                activeConnections.incrementAndGet();
+                return newConnection;
+            }
+            
+            // 等待可用连接（简单实现）
+            try {
+                poolLock.wait(connectionTimeout);
+                return getConnection(); // 递归重试
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new SQLException("获取连接被中断", e);
+            }
+        }
+    }
+
+    /**
+     * 归还连接到池
+     */
+    private void returnConnection(Connection connection) {
+        if (connection != null) {
+            synchronized (poolLock) {
+                connectionPool.put(connection, false); // 标记为空闲
+                poolLock.notifyAll();
+            }
+        }
+    }
+
+    /**
+     * 检查连接是否有效
+     */
+    private boolean isConnectionValid(Connection connection) {
+        try {
+            return connection != null && !connection.isClosed() && connection.isValid(5);
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
+    /**
+     * 创建表结构
+     */
+    private void createTable(Connection connection) throws SQLException {
+        String createTableSQL = String.format(
+            "CREATE TABLE IF NOT EXISTS %s (" +
+            "uuid VARCHAR(36) PRIMARY KEY, " +
+            "end_time BIGINT NOT NULL, " +
+            "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+            "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+            table
+        );
+        
+        try (Statement stmt = connection.createStatement()) {
+            stmt.executeUpdate(createTableSQL);
+        }
+    }
+
+    /**
+     * 执行数据库操作（使用统一异常处理器）
+     */
+    private <T> T executeWithRetry(String operationName, DatabaseOperation<T> operation) {
+        return exceptionHandler.executeWithRetry(operationName, () -> {
+            Connection connection = null;
+            try {
+                connection = getConnection();
+                T result = operation.execute(connection);
+                return result;
+            } catch (SQLException e) {
+                // 如果是连接问题，移除无效连接
+                if (connection != null && !isConnectionValid(connection)) {
+                    synchronized (poolLock) {
+                        connectionPool.remove(connection);
+                        activeConnections.decrementAndGet();
+                    }
+                    try {
+                        connection.close();
+                    } catch (SQLException ignored) {}
+                    connection = null;
+                }
+                throw e;
+            } finally {
+                if (connection != null) {
+                    returnConnection(connection);
+                }
+            }
+        }, maxRetries, 200, this::isDatabaseRetryableException);
+    }
+
+    /**
+     * 判断数据库异常是否可重试
+     */
+    private boolean isDatabaseRetryableException(Exception e) {
+        if (!(e instanceof SQLException)) {
+            return false;
+        }
+        
+        SQLException sqlEx = (SQLException) e;
+        String sqlState = sqlEx.getSQLState();
+        
+        // 连接相关错误可重试
+        if (sqlState != null && (
+            sqlState.startsWith("08") ||  // 连接异常
+            sqlState.startsWith("40") ||  // 事务回滚
+            sqlState.equals("HY000"))) { // 一般错误
+            return true;
+        }
+        
+        // 检查错误消息
+        String message = sqlEx.getMessage();
+        if (message != null) {
+            String lowerMessage = message.toLowerCase();
+            return lowerMessage.contains("timeout") ||
+                   lowerMessage.contains("connection") ||
+                   lowerMessage.contains("network") ||
+                   lowerMessage.contains("communications link failure") ||
+                   lowerMessage.contains("broken pipe");
+        }
+        
+        return false;
     }
 
     @Override
     public void close() {
-        try {
-            if (connection != null && !connection.isClosed()) {
-                connection.close();
+        synchronized (poolLock) {
+            for (Connection connection : connectionPool.keySet()) {
+                try {
+                    if (connection != null && !connection.isClosed()) {
+                        connection.close();
+                    }
+                } catch (SQLException e) {
+                    plugin.getLogger().warning("关闭数据库连接时出错: " + e.getMessage());
+                }
             }
-        } catch (SQLException e) {
-            plugin.getLogger().severe("关闭数据库连接时出错: " + e.getMessage());
+            connectionPool.clear();
+            activeConnections.set(0);
         }
+        plugin.getLogger().info("MySQL连接池已关闭");
     }
 
     @Override
     public void setPlayerFlightTime(UUID uuid, long endTime) {
-        try (PreparedStatement stmt = connection.prepareStatement(
-            "REPLACE INTO " + table + " (uuid, end_time) VALUES (?, ?)"
-        )) {
-            stmt.setString(1, uuid.toString());
-            stmt.setLong(2, endTime);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            plugin.getLogger().severe("保存玩家数据时出错: " + e.getMessage());
+        try {
+            executeWithRetry("setPlayerFlightTime", connection -> {
+                try (PreparedStatement stmt = connection.prepareStatement(
+                    "REPLACE INTO " + table + " (uuid, end_time) VALUES (?, ?)"
+                )) {
+                    stmt.setString(1, uuid.toString());
+                    stmt.setLong(2, endTime);
+                    stmt.executeUpdate();
+                    return null;
+                }
+            });
+        } catch (Exception e) {
+            plugin.getLogger().severe("保存玩家飞行时间失败: " + e.getMessage());
         }
     }
 
     @Override
     public Long getPlayerFlightTime(UUID uuid) {
-        try (PreparedStatement stmt = connection.prepareStatement(
-            "SELECT end_time FROM " + table + " WHERE uuid = ?"
-        )) {
-            stmt.setString(1, uuid.toString());
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getLong("end_time");
-            }
-        } catch (SQLException e) {
-            plugin.getLogger().severe("获取玩家数据时出错: " + e.getMessage());
+        try {
+            return executeWithRetry("getPlayerFlightTime", connection -> {
+                try (PreparedStatement stmt = connection.prepareStatement(
+                    "SELECT end_time FROM " + table + " WHERE uuid = ?"
+                )) {
+                    stmt.setString(1, uuid.toString());
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (rs.next()) {
+                            return rs.getLong("end_time");
+                        }
+                        return null;
+                    }
+                }
+            });
+        } catch (Exception e) {
+            plugin.getLogger().severe("获取玩家飞行时间失败: " + e.getMessage());
+            return null;
         }
-        return null;
     }
 
     @Override
     public void removePlayerFlightTime(UUID uuid) {
-        try (PreparedStatement stmt = connection.prepareStatement(
-            "DELETE FROM " + table + " WHERE uuid = ?"
-        )) {
-            stmt.setString(1, uuid.toString());
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            plugin.getLogger().severe("删除玩家数据时出错: " + e.getMessage());
+        try {
+            executeWithRetry("removePlayerFlightTime", connection -> {
+                try (PreparedStatement stmt = connection.prepareStatement(
+                    "DELETE FROM " + table + " WHERE uuid = ?"
+                )) {
+                    stmt.setString(1, uuid.toString());
+                    stmt.executeUpdate();
+                    return null;
+                }
+            });
+        } catch (Exception e) {
+            plugin.getLogger().severe("删除玩家飞行时间失败: " + e.getMessage());
         }
     }
 
     @Override
     public Map<UUID, Long> getAllPlayerData() {
-        Map<UUID, Long> data = new HashMap<>();
-        try (Statement stmt = connection.createStatement()) {
-            ResultSet rs = stmt.executeQuery("SELECT * FROM " + table);
-            while (rs.next()) {
-                UUID uuid = UUID.fromString(rs.getString("uuid"));
-                long endTime = rs.getLong("end_time");
-                data.put(uuid, endTime);
-            }
-        } catch (SQLException e) {
-            plugin.getLogger().severe("获取所有玩家数据时出错: " + e.getMessage());
+        try {
+            return executeWithRetry("getAllPlayerData", connection -> {
+                Map<UUID, Long> data = new HashMap<>();
+                try (Statement stmt = connection.createStatement();
+                     ResultSet rs = stmt.executeQuery("SELECT uuid, end_time FROM " + table)) {
+                    
+                    while (rs.next()) {
+                        try {
+                            UUID uuid = UUID.fromString(rs.getString("uuid"));
+                            long endTime = rs.getLong("end_time");
+                            data.put(uuid, endTime);
+                        } catch (IllegalArgumentException e) {
+                            plugin.getLogger().warning("跳过无效的UUID: " + rs.getString("uuid"));
+                        }
+                    }
+                }
+                return data;
+            });
+        } catch (Exception e) {
+            plugin.getLogger().severe("获取所有玩家数据失败: " + e.getMessage());
+            return new HashMap<>();
         }
-        return data;
     }
-} 
+
+    /**
+     * 数据库操作函数式接口
+     */
+    @FunctionalInterface
+    private interface DatabaseOperation<T> {
+        T execute(Connection connection) throws SQLException;
+    }
+
+    /**
+     * 获取连接池状态信息
+     */
+    public String getPoolStatus() {
+        synchronized (poolLock) {
+            long activeCount = connectionPool.values().stream().mapToLong(inUse -> inUse ? 1 : 0).sum();
+            return String.format("连接池状态: %d/%d 活跃, %d 总连接", 
+                activeCount, maxConnections, connectionPool.size());
+        }
+    }
+
+    /**
+     * 获取数据库操作统计信息
+     */
+    public String getDatabaseStatistics() {
+        return String.format("MySQL存储统计: %s | %s", 
+            getPoolStatus(), 
+            exceptionHandler != null ? exceptionHandler.getStatistics() : "异常处理器未初始化");
+    }
+}
