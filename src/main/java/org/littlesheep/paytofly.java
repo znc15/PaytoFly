@@ -213,6 +213,12 @@ public final class paytofly extends JavaPlugin {
             }
 
             if (args[0].equalsIgnoreCase("time") || args[0].equalsIgnoreCase("check")) {
+                // 首先检查是否有无限飞行权限
+                if (player.hasPermission("paytofly.infinite")) {
+                    player.sendMessage(prefix + lang.getMessage("time-check-infinite"));
+                    return true;
+                }
+                
                 Long endTime = storage.getPlayerFlightTime(player.getUniqueId());
                 if (endTime == null) {
                     player.sendMessage(prefix + lang.getMessage("time-check-no-permission"));

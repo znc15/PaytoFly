@@ -71,8 +71,21 @@ public class CountdownManager {
             
             if (remaining <= 0) {
                 stopCountdown(uuid);
+                
+                // 确保清理飞行状态和数据
                 player.setAllowFlight(false);
                 player.setFlying(false);
+                
+                // 清理插件数据
+                if (plugin instanceof org.littlesheep.paytofly) {
+                    org.littlesheep.paytofly paytoFlyPlugin = (org.littlesheep.paytofly) plugin;
+                    paytoFlyPlugin.getFlyingPlayers().remove(uuid);
+                    paytoFlyPlugin.getStorage().removePlayerFlightTime(uuid);
+                    
+                    // 同步取消MHDF-Tools飞行权限
+                    syncMHDFToolsDisableFlight(player, paytoFlyPlugin);
+                }
+                
                 player.sendMessage(lang.getMessage("flight-expired"));
                 return;
             }
@@ -153,6 +166,29 @@ public class CountdownManager {
         // 清理所有倒计时
         for (UUID uuid : new HashMap<>(countdownTasks).keySet()) {
             stopCountdown(uuid);
+        }
+    }
+
+    /**
+     * 同步取消MHDF-Tools飞行权限
+     * @param player 玩家
+     * @param paytoFlyPlugin 插件实例
+     */
+    private void syncMHDFToolsDisableFlight(Player player, org.littlesheep.paytofly paytoFlyPlugin) {
+        if (Bukkit.getPluginManager().getPlugin("MHDF-Tools") != null) {
+            try {
+                // 使用MHDF-Tools的fly命令取消飞行权限
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), 
+                        "fly " + player.getName() + " false");
+                
+                // 确保完全移除权限 - 尝试清除可能存在的任何临时权限
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), 
+                        "lp user " + player.getName() + " permission unset mhdtools.commands.fly.temp");
+                
+                paytoFlyPlugin.getLogger().info("已在倒计时结束时禁用玩家 " + player.getName() + " 的MHDF-Tools飞行权限");
+            } catch (Exception e) {
+                paytoFlyPlugin.getLogger().warning("同步取消MHDF-Tools飞行权限失败: " + e.getMessage());
+            }
         }
     }
 } 

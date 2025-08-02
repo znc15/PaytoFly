@@ -114,6 +114,7 @@ messages:
   time-check-no-permission: "&cYou haven't purchased flight permissions yet."
   time-check-remaining: "&aYour flight permission has &e{remaining} &aremaining"
   time-check-expired: "&cYour flight permission has expired. Please purchase again."
+  time-check-infinite: "&aYou have infinite flight permission!"
 
   # Time Limit Messages
   time-limit: "&cMinimum purchase time is {min} minutes, maximum is {max} minutes"

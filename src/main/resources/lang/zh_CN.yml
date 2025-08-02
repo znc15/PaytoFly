@@ -114,6 +114,7 @@ messages:
   time-check-no-permission: "&c您还没有购买过飞行权限。"
   time-check-remaining: "&a您的飞行权限&7剩余时间: &e{remaining}"
   time-check-expired: "&c您的飞行权限已过期，请重新购买。"
+  time-check-infinite: "&a您拥有无限飞行权限！"
 
   # 时间限制提示
   time-limit: "&c最低购买时间为 {min} 分钟，最高为 {max} 分钟"
