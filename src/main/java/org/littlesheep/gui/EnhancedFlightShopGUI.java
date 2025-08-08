@@ -38,7 +38,9 @@ public class EnhancedFlightShopGUI implements Listener {
         EFFECTS("effects"), 
         SPEEDS("speeds"),
         EFFECT_SWITCHER("effect-switcher"),
-        SPEED_SWITCHER("speed-switcher");
+        SPEED_SWITCHER("speed-switcher"),
+        EFFECT_TIME_PURCHASE("effect-time-purchase"),
+        SPEED_TIME_PURCHASE("speed-time-purchase");
         
         private final String configKey;
         
@@ -93,6 +95,10 @@ public class EnhancedFlightShopGUI implements Listener {
      * 打开指定类型的GUI
      */
     public void openGUI(Player player, GUIType type) {
+        openGUI(player, type, null);
+    }
+    
+    public void openGUI(Player player, GUIType type, String extraData) {
         switch (type) {
             case MAIN:
                 openMainGUI(player);
@@ -108,6 +114,12 @@ public class EnhancedFlightShopGUI implements Listener {
                 break;
             case SPEED_SWITCHER:
                 openSpeedSwitcherGUI(player);
+                break;
+            case EFFECT_TIME_PURCHASE:
+                openEffectTimePurchaseGUI(player, extraData);
+                break;
+            case SPEED_TIME_PURCHASE:
+                openSpeedTimePurchaseGUI(player, extraData);
                 break;
         }
         
@@ -167,6 +179,96 @@ public class EnhancedFlightShopGUI implements Listener {
         
         // 添加速度物品
         addSpeedItems(gui, player);
+        
+        player.openInventory(gui);
+    }
+    
+    /**
+     * 打开特效切换器
+     */
+    public void openEffectSwitcherGUI(Player player) {
+        String title = ChatColor.translateAlternateColorCodes('&', 
+            guiConfig.getString("settings.effect-switcher.title", "&d&l✨ &f特效切换器"));
+        int size = guiConfig.getInt("settings.effect-switcher.size", 45);
+        
+        Inventory gui = Bukkit.createInventory(null, size, title);
+        
+        // 填充背景
+        fillBackground(gui, "settings.effect-switcher");
+        
+        // 添加特效切换器物品
+        addEffectSwitcherItems(gui, player);
+        
+        player.openInventory(gui);
+    }
+    
+    /**
+     * 打开速度切换器
+     */
+    public void openSpeedSwitcherGUI(Player player) {
+        String title = ChatColor.translateAlternateColorCodes('&', 
+            guiConfig.getString("settings.speed-switcher.title", "&a&l⚡ &f速度切换器"));
+        int size = guiConfig.getInt("settings.speed-switcher.size", 45);
+        
+        Inventory gui = Bukkit.createInventory(null, size, title);
+        
+        // 填充背景
+        fillBackground(gui, "settings.speed-switcher");
+        
+        // 添加速度切换器物品
+        addSpeedSwitcherItems(gui, player);
+        
+        player.openInventory(gui);
+    }
+    
+    /**
+     * 打开特效时间购买界面
+     */
+    public void openEffectTimePurchaseGUI(Player player, String effectName) {
+        if (effectName == null) {
+            player.sendMessage(plugin.getPrefix() + "&c特效名称不能为空！");
+            return;
+        }
+        
+        String effectDisplayName = getEffectDisplayName(effectName);
+        String title = ChatColor.translateAlternateColorCodes('&', 
+            guiConfig.getString("settings.effect-time-purchase.title", "&d&l✨ &f{effect_name} &d&l- 时间购买")
+                .replace("{effect_name}", effectDisplayName));
+        int size = guiConfig.getInt("settings.effect-time-purchase.size", 45);
+        
+        Inventory gui = Bukkit.createInventory(null, size, title);
+        
+        // 填充背景
+        fillBackground(gui, "settings.effect-time-purchase");
+        
+        // 添加时间购买选项
+        addEffectTimePurchaseItems(gui, player, effectName);
+        
+        player.openInventory(gui);
+    }
+    
+    /**
+     * 打开速度时间购买界面
+     */
+    public void openSpeedTimePurchaseGUI(Player player, String speedName) {
+        if (speedName == null) {
+            player.sendMessage(plugin.getPrefix() + "&c速度名称不能为空！");
+            return;
+        }
+        
+        String speedDisplayName = getSpeedDisplayName(speedName);
+        String title = ChatColor.translateAlternateColorCodes('&', 
+            guiConfig.getString("settings.speed-time-purchase.title", "&a&l⚡ &f{speed_name} &a&l- 时间购买")
+                .replace("{speed_name}", speedDisplayName));
+        int size = guiConfig.getInt("settings.speed-time-purchase.size", 45);
+        
+        Inventory gui = Bukkit.createInventory(null, size, title);
+        
+        // 填充背景
+        fillBackground(gui, "settings.speed-time-purchase");
+        
+        // 添加时间购买选项
+        addSpeedTimePurchaseItems(gui, player, speedName);
         
         player.openInventory(gui);
     }
@@ -290,6 +392,202 @@ public class EnhancedFlightShopGUI implements Listener {
     }
     
     /**
+     * 添加特效切换器物品
+     */
+    private void addEffectSwitcherItems(Inventory gui, Player player) {
+        if (!guiConfig.contains("effect-switcher-items")) return;
+        
+        for (String key : guiConfig.getConfigurationSection("effect-switcher-items").getKeys(false)) {
+            String path = "effect-switcher-items." + key + ".";
+            
+            int slot = guiConfig.getInt(path + "slot", -1);
+            if (slot < 0 || slot >= gui.getSize()) continue;
+            
+            ItemStack item = createSwitcherItem(key, path, player, "effect");
+            if (item != null) {
+                gui.setItem(slot, item);
+            }
+        }
+    }
+    
+    /**
+     * 添加速度切换器物品
+     */
+    private void addSpeedSwitcherItems(Inventory gui, Player player) {
+        if (!guiConfig.contains("speed-switcher-items")) return;
+        
+        for (String key : guiConfig.getConfigurationSection("speed-switcher-items").getKeys(false)) {
+            String path = "speed-switcher-items." + key + ".";
+            
+            int slot = guiConfig.getInt(path + "slot", -1);
+            if (slot < 0 || slot >= gui.getSize()) continue;
+            
+            ItemStack item = createSwitcherItem(key, path, player, "speed");
+            if (item != null) {
+                gui.setItem(slot, item);
+            }
+        }
+    }
+    
+    /**
+     * 添加特效时间购买物品
+     */
+    private void addEffectTimePurchaseItems(Inventory gui, Player player, String effectName) {
+        // 获取基础价格
+        double basePrice = guiConfig.getDouble("effect-items." + effectName + ".price", 100.0);
+        if (basePrice == 0.0) {
+            basePrice = plugin.getConfig().getDouble("flight-effects.purchase.prices." + effectName, 100.0);
+        }
+        
+        // 获取时间倍数
+        double hourMultiplier = plugin.getConfig().getDouble("flight-effects.time-purchase.hour-multiplier", 0.1);
+        double dayMultiplier = plugin.getConfig().getDouble("flight-effects.time-purchase.day-multiplier", 2.0);
+        double weekMultiplier = plugin.getConfig().getDouble("flight-effects.time-purchase.week-multiplier", 12.0);
+        
+        // 1小时选项
+        ItemStack hourItem = createTimePurchaseItem(
+            Material.CLOCK, "&e&l⏰ 1小时 " + getEffectDisplayName(effectName),
+            basePrice * hourMultiplier, "1小时后自动失效",
+            "fly effect buy " + effectName + " 1 hour"
+        );
+        gui.setItem(11, hourItem);
+        
+        // 1天选项
+        ItemStack dayItem = createTimePurchaseItem(
+            Material.SUNFLOWER, "&6&l☀ 1天 " + getEffectDisplayName(effectName),
+            basePrice * dayMultiplier, "1天后自动失效",
+            "fly effect buy " + effectName + " 1 day"
+        );
+        gui.setItem(13, dayItem);
+        
+        // 1周选项
+        ItemStack weekItem = createTimePurchaseItem(
+            Material.DIAMOND, "&d&l💎 1周 " + getEffectDisplayName(effectName),
+            basePrice * weekMultiplier, "1周后自动失效",
+            "fly effect buy " + effectName + " 1 week"
+        );
+        gui.setItem(15, weekItem);
+        
+        // 返回按钮
+        ItemStack backItem = createItem(Material.BARRIER, "&c&l← 返回特效商店", 
+            List.of("&7点击返回特效商店"), false);
+        gui.setItem(40, backItem);
+    }
+    
+    /**
+     * 添加速度时间购买物品
+     */
+    private void addSpeedTimePurchaseItems(Inventory gui, Player player, String speedName) {
+        // 获取基础价格
+        double basePrice = guiConfig.getDouble("speed-items." + speedName + ".price", 100.0);
+        if (basePrice == 0.0) {
+            basePrice = plugin.getConfig().getDouble("flight-speed.purchase.prices." + speedName, 100.0);
+        }
+        
+        // 获取时间倍数
+        double hourMultiplier = plugin.getConfig().getDouble("flight-speed.time-purchase.hour-multiplier", 0.1);
+        double dayMultiplier = plugin.getConfig().getDouble("flight-speed.time-purchase.day-multiplier", 2.0);
+        double weekMultiplier = plugin.getConfig().getDouble("flight-speed.time-purchase.week-multiplier", 12.0);
+        
+        // 1小时选项
+        ItemStack hourItem = createTimePurchaseItem(
+            Material.CLOCK, "&e&l⏰ 1小时 " + getSpeedDisplayName(speedName),
+            basePrice * hourMultiplier, "1小时后自动失效",
+            "fly speed buy " + speedName + " 1 hour"
+        );
+        gui.setItem(11, hourItem);
+        
+        // 1天选项
+        ItemStack dayItem = createTimePurchaseItem(
+            Material.SUNFLOWER, "&6&l☀ 1天 " + getSpeedDisplayName(speedName),
+            basePrice * dayMultiplier, "1天后自动失效",
+            "fly speed buy " + speedName + " 1 day"
+        );
+        gui.setItem(13, dayItem);
+        
+        // 1周选项
+        ItemStack weekItem = createTimePurchaseItem(
+            Material.DIAMOND, "&d&l💎 1周 " + getSpeedDisplayName(speedName),
+            basePrice * weekMultiplier, "1周后自动失效",
+            "fly speed buy " + speedName + " 1 week"
+        );
+        gui.setItem(15, weekItem);
+        
+        // 返回按钮
+        ItemStack backItem = createItem(Material.BARRIER, "&c&l← 返回速度商店", 
+            List.of("&7点击返回速度商店"), false);
+        gui.setItem(40, backItem);
+    }
+    
+    /**
+     * 创建时间购买物品
+     */
+    private ItemStack createTimePurchaseItem(Material material, String name, double price, String duration, String command) {
+        List<String> lore = new ArrayList<>();
+        lore.add("&f━━━━━━━━━━━━━━━━");
+        lore.add("&7▸ 价格: &6" + String.format("%.2f", price) + " &7金币");
+        lore.add("&7▸ 时长: &e" + duration);
+        lore.add("&7▸ 到期后自动失效");
+        lore.add("&f━━━━━━━━━━━━━━━━");
+        lore.add("&a➤ 点击购买");
+        
+        ItemStack item = createItem(material, name, lore, true);
+        
+        // 存储命令到物品的 NBT 中（用于点击处理）
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
+            // 可以在这里添加自定义标签来存储命令
+            item.setItemMeta(meta);
+        }
+        
+        return item;
+    }
+    
+    /**
+     * 获取特效显示名称
+     */
+    private String getEffectDisplayName(String effectName) {
+        String configName = guiConfig.getString("effect-items." + effectName + ".name");
+        if (configName != null) {
+            return ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', configName));
+        }
+        
+        // 如果配置中没有，使用默认名称
+        switch (effectName.toLowerCase()) {
+            case "basic": return "基础特效";
+            case "rainbow": return "彩虹特效";
+            case "star": return "星星特效";
+            case "fire": return "火焰特效";
+            case "magic": return "魔法特效";
+            case "dragon": return "龙息特效";
+            default: return effectName;
+        }
+    }
+    
+    /**
+     * 获取速度显示名称
+     */
+    private String getSpeedDisplayName(String speedName) {
+        String configName = guiConfig.getString("speed-items." + speedName + ".name");
+        if (configName != null) {
+            return ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', configName));
+        }
+        
+        // 如果配置中没有，使用默认名称
+        switch (speedName.toLowerCase()) {
+            case "slow": return "缓慢速度";
+            case "normal": return "普通速度";
+            case "fast": return "快速";
+            case "very_fast": return "极速";
+            case "super_fast": return "超速";
+            case "light_speed": return "光速";
+            case "warp_speed": return "曲速";
+            default: return speedName;
+        }
+    }
+    
+    /**
      * 创建商店物品
      */
     private ItemStack createShopItem(String key, String path, Player player, String type) {
@@ -326,6 +624,54 @@ public class EnhancedFlightShopGUI implements Listener {
     }
     
     /**
+     * 创建切换器物品
+     */
+    private ItemStack createSwitcherItem(String key, String path, Player player, String type) {
+        try {
+            Material material = Material.valueOf(guiConfig.getString(path + "material", "STONE"));
+            String name = ChatColor.translateAlternateColorCodes('&', 
+                guiConfig.getString(path + "name", ""));
+            boolean glow = guiConfig.getBoolean(path + "glow", false);
+            
+            // 检查是否拥有此特效/速度
+            boolean owned = checkOwnership(player, key, type);
+            boolean isCurrent = isCurrentSelection(player, key, type);
+            
+            List<String> lore = new ArrayList<>();
+            for (String line : guiConfig.getStringList(path + "lore")) {
+                if (line.contains("{status}")) {
+                    String status = getSwitcherStatus(owned, isCurrent);
+                    line = line.replace("{status}", status);
+                }
+                lore.add(ChatColor.translateAlternateColorCodes('&', line));
+            }
+            
+            // 如果是当前选择的，添加光效
+            if (isCurrent) {
+                glow = true;
+            }
+            
+            return createItem(material, name, lore, glow);
+        } catch (Exception e) {
+            plugin.getLogger().warning("创建切换器物品失败: " + key + " - " + e.getMessage());
+            return null;
+        }
+    }
+    
+    /**
+     * 获取切换器状态显示
+     */
+    private String getSwitcherStatus(boolean owned, boolean isCurrent) {
+        if (isCurrent) {
+            return "&e★ 当前使用";
+        } else if (owned) {
+            return "&a✓ 点击切换";
+        } else {
+            return "&c✗ 未拥有";
+        }
+    }
+
+    /**
      * 检查玩家是否拥有特效或速度
      */
     private boolean checkOwnership(Player player, String key, String type) {
@@ -335,7 +681,13 @@ public class EnhancedFlightShopGUI implements Listener {
             if (player.hasPermission(permission) || player.hasPermission("paytofly.effects.*")) {
                 return true;
             }
-            return plugin.getStorage().getPlayerEffects(player.getUniqueId()).contains(key);
+            // 检查永久购买
+            if (plugin.getStorage().getPlayerEffects(player.getUniqueId()).contains(key)) {
+                return true;
+            }
+            // 检查时间限制购买
+            Long effectTime = plugin.getStorage().getPlayerEffectTime(player.getUniqueId(), key);
+            return effectTime != null && effectTime > System.currentTimeMillis();
         } else if ("speed".equals(type)) {
             // 检查速度权限或购买状态
             if ("normal".equals(key) || "slow".equals(key)) {
@@ -345,7 +697,13 @@ public class EnhancedFlightShopGUI implements Listener {
             if (player.hasPermission(permission) || player.hasPermission("paytofly.speed.*")) {
                 return true;
             }
-            return plugin.getStorage().getPlayerSpeeds(player.getUniqueId()).contains(key);
+            // 检查永久购买
+            if (plugin.getStorage().getPlayerSpeeds(player.getUniqueId()).contains(key)) {
+                return true;
+            }
+            // 检查时间限制购买
+            Long speedTime = plugin.getStorage().getPlayerSpeedTime(player.getUniqueId(), key);
+            return speedTime != null && speedTime > System.currentTimeMillis();
         }
         return false;
     }
@@ -506,6 +864,22 @@ public class EnhancedFlightShopGUI implements Listener {
         text = text.replace("{price}", String.valueOf(pricePerMinute));
         text = text.replace("{min}", String.valueOf(minMinutes));
         
+        // 当前特效和速度
+        if (plugin.getEffectManager() != null) {
+            var currentEffect = plugin.getEffectManager().getPlayerEffect(player);
+            String effectDisplayName = getEffectDisplayName(currentEffect.getName());
+            text = text.replace("{current_effect}", "&d" + effectDisplayName);
+        } else {
+            text = text.replace("{current_effect}", "&7未知");
+        }
+        
+        if (plugin.getSpeedManager() != null) {
+            var currentSpeed = plugin.getSpeedManager().getPlayerSpeed(player);
+            text = text.replace("{current_speed}", "&a" + currentSpeed.getDisplayName());
+        } else {
+            text = text.replace("{current_speed}", "&7未知");
+        }
+        
         // 动态价格计算（如果需要）
         // 这个方法会在创建物品时被调用，价格计算在那里处理
         
@@ -551,9 +925,10 @@ public class EnhancedFlightShopGUI implements Listener {
         
         int slot = event.getSlot();
         String currentGUI = playerCurrentGUI.get(player.getUniqueId());
+        boolean isRightClick = event.getClick().isRightClick();
         
         try {
-            handleGUIClick(player, slot, currentGUI);
+            handleGUIClick(player, slot, currentGUI, isRightClick);
         } catch (Exception e) {
             player.sendMessage(plugin.getPrefix() + "&c处理点击事件时出错，请联系管理员");
             plugin.getLogger().severe("GUI点击处理错误: " + e.getMessage());
@@ -568,26 +943,37 @@ public class EnhancedFlightShopGUI implements Listener {
         String cleanTitle = ChatColor.stripColor(title);
         return cleanTitle.contains("飞行商店") || 
                cleanTitle.contains("特效商店") || 
-               cleanTitle.contains("速度商店");
+               cleanTitle.contains("速度商店") ||
+               cleanTitle.contains("特效切换器") ||
+               cleanTitle.contains("速度切换器") ||
+               cleanTitle.contains("时间购买");
     }
     
     /**
      * 处理GUI点击
      */
-    private void handleGUIClick(Player player, int slot, String currentGUI) {
+    private void handleGUIClick(Player player, int slot, String currentGUI, boolean isRightClick) {
         if ("main".equals(currentGUI)) {
-            handleMainGUIClick(player, slot);
+            handleMainGUIClick(player, slot, isRightClick);
         } else if ("effects".equals(currentGUI)) {
-            handleEffectsGUIClick(player, slot);
+            handleEffectsGUIClick(player, slot, isRightClick);
         } else if ("speeds".equals(currentGUI)) {
-            handleSpeedsGUIClick(player, slot);
+            handleSpeedsGUIClick(player, slot, isRightClick);
+        } else if ("effect-switcher".equals(currentGUI)) {
+            handleEffectSwitcherGUIClick(player, slot);
+        } else if ("speed-switcher".equals(currentGUI)) {
+            handleSpeedSwitcherGUIClick(player, slot);
+        } else if ("effect-time-purchase".equals(currentGUI)) {
+            handleEffectTimePurchaseGUIClick(player, slot);
+        } else if ("speed-time-purchase".equals(currentGUI)) {
+            handleSpeedTimePurchaseGUIClick(player, slot);
         }
     }
     
     /**
      * 处理主界面点击
      */
-    private void handleMainGUIClick(Player player, int slot) {
+    private void handleMainGUIClick(Player player, int slot, boolean isRightClick) {
         // 查找对应的物品和命令
         for (String key : guiConfig.getConfigurationSection("main-items").getKeys(false)) {
             String path = "main-items." + key + ".";
@@ -600,6 +986,31 @@ public class EnhancedFlightShopGUI implements Listener {
                     openGUI(player, GUIType.SPEEDS);
                 } else if ("custom-time".equals(key)) {
                     handleCustomTimeClick(player);
+                } else if ("player-info".equals(key)) {
+                    // 个人信息点击处理
+                    if (isRightClick) {
+                        // 右键打开速度切换器
+                        String rightCommand = guiConfig.getString(path + "right-command", "");
+                        if (!rightCommand.isEmpty()) {
+                            if (rightCommand.equals("gui:speed-switcher")) {
+                                player.closeInventory();
+                                openGUI(player, GUIType.SPEED_SWITCHER);
+                            } else {
+                                executeCommand(player, rightCommand);
+                            }
+                        }
+                    } else {
+                        // 左键打开特效切换器
+                        String leftCommand = guiConfig.getString(path + "command", "");
+                        if (!leftCommand.isEmpty()) {
+                            if (leftCommand.equals("gui:effect-switcher")) {
+                                player.closeInventory();
+                                openGUI(player, GUIType.EFFECT_SWITCHER);
+                            } else {
+                                executeCommand(player, leftCommand);
+                            }
+                        }
+                    }
                 } else {
                     // 处理购买飞行时间
                     String command = guiConfig.getString(path + "command", "");
@@ -615,7 +1026,7 @@ public class EnhancedFlightShopGUI implements Listener {
     /**
      * 处理特效商店点击
      */
-    private void handleEffectsGUIClick(Player player, int slot) {
+    private void handleEffectsGUIClick(Player player, int slot, boolean isRightClick) {
         for (String key : guiConfig.getConfigurationSection("effect-items").getKeys(false)) {
             String path = "effect-items." + key + ".";
             if (guiConfig.getInt(path + "slot", -1) == slot) {
@@ -623,9 +1034,20 @@ public class EnhancedFlightShopGUI implements Listener {
                     player.closeInventory();
                     openGUI(player, GUIType.MAIN);
                 } else {
-                    String command = guiConfig.getString(path + "command", "");
-                    if (!command.isEmpty()) {
-                        executeCommand(player, command);
+                    if (isRightClick) {
+                        // 右键进入时间购买界面
+                        String rightCommand = guiConfig.getString(path + "right-command", "");
+                        if (!rightCommand.isEmpty() && rightCommand.startsWith("gui:effect-time:")) {
+                            String effectName = rightCommand.substring("gui:effect-time:".length());
+                            player.closeInventory();
+                            openGUI(player, GUIType.EFFECT_TIME_PURCHASE, effectName);
+                        }
+                    } else {
+                        // 左键永久购买
+                        String command = guiConfig.getString(path + "command", "");
+                        if (!command.isEmpty()) {
+                            executeCommand(player, command);
+                        }
                     }
                 }
                 break;
@@ -636,7 +1058,7 @@ public class EnhancedFlightShopGUI implements Listener {
     /**
      * 处理速度商店点击
      */
-    private void handleSpeedsGUIClick(Player player, int slot) {
+    private void handleSpeedsGUIClick(Player player, int slot, boolean isRightClick) {
         for (String key : guiConfig.getConfigurationSection("speed-items").getKeys(false)) {
             String path = "speed-items." + key + ".";
             if (guiConfig.getInt(path + "slot", -1) == slot) {
@@ -644,9 +1066,20 @@ public class EnhancedFlightShopGUI implements Listener {
                     player.closeInventory();
                     openGUI(player, GUIType.MAIN);
                 } else {
-                    String command = guiConfig.getString(path + "command", "");
-                    if (!command.isEmpty()) {
-                        executeCommand(player, command);
+                    if (isRightClick) {
+                        // 右键进入时间购买界面
+                        String rightCommand = guiConfig.getString(path + "right-command", "");
+                        if (!rightCommand.isEmpty() && rightCommand.startsWith("gui:speed-time:")) {
+                            String speedName = rightCommand.substring("gui:speed-time:".length());
+                            player.closeInventory();
+                            openGUI(player, GUIType.SPEED_TIME_PURCHASE, speedName);
+                        }
+                    } else {
+                        // 左键永久购买
+                        String command = guiConfig.getString(path + "command", "");
+                        if (!command.isEmpty()) {
+                            executeCommand(player, command);
+                        }
                     }
                 }
                 break;
@@ -676,6 +1109,148 @@ public class EnhancedFlightShopGUI implements Listener {
             "{min}", String.valueOf(minMinutes)));
     }
     
+    /**
+     * 处理特效切换器点击
+     */
+    private void handleEffectSwitcherGUIClick(Player player, int slot) {
+        if (!guiConfig.contains("effect-switcher-items")) return;
+        
+        for (String key : guiConfig.getConfigurationSection("effect-switcher-items").getKeys(false)) {
+            String path = "effect-switcher-items." + key + ".";
+            if (guiConfig.getInt(path + "slot", -1) == slot) {
+                if ("back".equals(key)) {
+                    player.closeInventory();
+                    openGUI(player, GUIType.MAIN);
+                } else {
+                    String command = guiConfig.getString(path + "command", "");
+                    if (!command.isEmpty()) {
+                        executeCommand(player, command);
+                    }
+                }
+                break;
+            }
+        }
+    }
+    
+    /**
+     * 处理速度切换器点击
+     */
+    private void handleSpeedSwitcherGUIClick(Player player, int slot) {
+        if (!guiConfig.contains("speed-switcher-items")) return;
+        
+        for (String key : guiConfig.getConfigurationSection("speed-switcher-items").getKeys(false)) {
+            String path = "speed-switcher-items." + key + ".";
+            if (guiConfig.getInt(path + "slot", -1) == slot) {
+                if ("back".equals(key)) {
+                    player.closeInventory();
+                    openGUI(player, GUIType.MAIN);
+                } else {
+                    String command = guiConfig.getString(path + "command", "");
+                    if (!command.isEmpty()) {
+                        executeCommand(player, command);
+                    }
+                }
+                break;
+            }
+        }
+    }
+    
+    /**
+     * 处理特效时间购买点击
+     */
+    private void handleEffectTimePurchaseGUIClick(Player player, int slot) {
+        // 处理时间购买选项点击
+        if (slot == 11) {
+            // 1小时购买
+            String effectName = extractEffectNameFromTitle(player.getOpenInventory().getTitle());
+            if (effectName != null) {
+                executeCommand(player, "fly effect buy " + effectName + " 1 hour");
+            }
+        } else if (slot == 13) {
+            // 1天购买
+            String effectName = extractEffectNameFromTitle(player.getOpenInventory().getTitle());
+            if (effectName != null) {
+                executeCommand(player, "fly effect buy " + effectName + " 1 day");
+            }
+        } else if (slot == 15) {
+            // 1周购买
+            String effectName = extractEffectNameFromTitle(player.getOpenInventory().getTitle());
+            if (effectName != null) {
+                executeCommand(player, "fly effect buy " + effectName + " 1 week");
+            }
+        } else if (slot == 40) {
+            // 返回按钮
+            player.closeInventory();
+            openGUI(player, GUIType.EFFECTS);
+        }
+    }
+    
+    /**
+     * 处理速度时间购买点击
+     */
+    private void handleSpeedTimePurchaseGUIClick(Player player, int slot) {
+        // 处理时间购买选项点击
+        if (slot == 11) {
+            // 1小时购买
+            String speedName = extractSpeedNameFromTitle(player.getOpenInventory().getTitle());
+            if (speedName != null) {
+                executeCommand(player, "fly speed buy " + speedName + " 1 hour");
+            }
+        } else if (slot == 13) {
+            // 1天购买
+            String speedName = extractSpeedNameFromTitle(player.getOpenInventory().getTitle());
+            if (speedName != null) {
+                executeCommand(player, "fly speed buy " + speedName + " 1 day");
+            }
+        } else if (slot == 15) {
+            // 1周购买
+            String speedName = extractSpeedNameFromTitle(player.getOpenInventory().getTitle());
+            if (speedName != null) {
+                executeCommand(player, "fly speed buy " + speedName + " 1 week");
+            }
+        } else if (slot == 40) {
+            // 返回按钮
+            player.closeInventory();
+            openGUI(player, GUIType.SPEEDS);
+        }
+    }
+    
+    /**
+     * 从GUI标题中提取特效名称
+     */
+    private String extractEffectNameFromTitle(String title) {
+        // 从标题中提取特效名称，例如从"✨ 彩虹特效 - 时间购买"中提取"rainbow"
+        String cleanTitle = ChatColor.stripColor(title);
+        
+        // 简单的映射，实际应用中可能需要更复杂的逻辑
+        if (cleanTitle.contains("基础特效")) return "basic";
+        if (cleanTitle.contains("彩虹特效")) return "rainbow";
+        if (cleanTitle.contains("星星特效")) return "star";
+        if (cleanTitle.contains("火焰特效")) return "fire";
+        if (cleanTitle.contains("魔法特效")) return "magic";
+        if (cleanTitle.contains("龙息特效")) return "dragon";
+        
+        return null;
+    }
+    
+    /**
+     * 从GUI标题中提取速度名称
+     */
+    private String extractSpeedNameFromTitle(String title) {
+        // 从标题中提取速度名称
+        String cleanTitle = ChatColor.stripColor(title);
+        
+        if (cleanTitle.contains("缓慢速度")) return "slow";
+        if (cleanTitle.contains("普通速度")) return "normal";
+        if (cleanTitle.contains("快速")) return "fast";
+        if (cleanTitle.contains("极速")) return "very_fast";
+        if (cleanTitle.contains("超速")) return "super_fast";
+        if (cleanTitle.contains("光速")) return "light_speed";
+        if (cleanTitle.contains("曲速")) return "warp_speed";
+        
+        return null;
+    }
+
     /**
      * 执行命令
      */

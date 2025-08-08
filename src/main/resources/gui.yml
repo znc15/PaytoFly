@@ -431,12 +431,15 @@ speed-items:
     lore:
       - "&f━━━━━━━━━━━━━━━━"
       - "&7▸ 精细操作的理想速度"
-      - "&7▸ 价格: &6{price} &7金币"
+      - "&7▸ 永久价格: &6{price} &7金币"
       - "&7▸ 速度: &70.05"
       - "&7▸ 等级: &a★☆☆☆☆☆☆"
       - "&f━━━━━━━━━━━━━━━━"
       - "{status}"
+      - "&e&l➤ 左键永久购买"
+      - "&b&l➤ 右键时间购买"
     command: "fly speed buy slow"
+    right-command: "gui:speed-time:slow"
     glow: false
   
   normal:
@@ -453,6 +456,7 @@ speed-items:
       - "&f━━━━━━━━━━━━━━━━"
       - "&a✓ 免费使用"
     command: "fly speed buy normal"
+    right-command: "gui:speed-time:normal"
     glow: false
   
   fast:
@@ -463,12 +467,15 @@ speed-items:
     lore:
       - "&f━━━━━━━━━━━━━━━━"
       - "&7▸ 提升移动效率"
-      - "&7▸ 价格: &6{price} &7金币"
+      - "&7▸ 永久价格: &6{price} &7金币"
       - "&7▸ 速度: &a0.2"
       - "&7▸ 等级: &a★★★☆☆☆☆"
       - "&f━━━━━━━━━━━━━━━━"
       - "{status}"
+      - "&e&l➤ 左键永久购买"
+      - "&b&l➤ 右键时间购买"
     command: "fly speed buy fast"
+    right-command: "gui:speed-time:fast"
     glow: false
   
   very-fast:
@@ -479,12 +486,15 @@ speed-items:
     lore:
       - "&f━━━━━━━━━━━━━━━━"
       - "&7▸ 高速飞行体验"
-      - "&7▸ 价格: &6{price} &7金币"
+      - "&7▸ 永久价格: &6{price} &7金币"
       - "&7▸ 速度: &e0.3"
       - "&7▸ 等级: &a★★★★☆☆☆"
       - "&f━━━━━━━━━━━━━━━━"
       - "{status}"
+      - "&e&l➤ 左键永久购买"
+      - "&b&l➤ 右键时间购买"
     command: "fly speed buy very_fast"
+    right-command: "gui:speed-time:very_fast"
     glow: true
   
   super-fast:
@@ -495,12 +505,15 @@ speed-items:
     lore:
       - "&f━━━━━━━━━━━━━━━━"
       - "&7▸ 极快移动速度"
-      - "&7▸ 价格: &6{price} &7金币"
+      - "&7▸ 永久价格: &6{price} &7金币"
       - "&7▸ 速度: &60.5"
       - "&7▸ 等级: &a★★★★★☆☆"
       - "&f━━━━━━━━━━━━━━━━"
       - "{status}"
+      - "&e&l➤ 左键永久购买"
+      - "&b&l➤ 右键时间购买"
     command: "fly speed buy super_fast"
+    right-command: "gui:speed-time:super_fast"
     glow: true
   
   light-speed:
@@ -511,12 +524,15 @@ speed-items:
     lore:
       - "&f━━━━━━━━━━━━━━━━"
       - "&7▸ 接近光速飞行"
-      - "&7▸ 价格: &6{price} &7金币"
+      - "&7▸ 永久价格: &6{price} &7金币"
       - "&7▸ 速度: &b0.8"
       - "&7▸ 等级: &a★★★★★★☆"
       - "&f━━━━━━━━━━━━━━━━"
       - "{status}"
+      - "&e&l➤ 左键永久购买"
+      - "&b&l➤ 右键时间购买"
     command: "fly speed buy light_speed"
+    right-command: "gui:speed-time:light_speed"
     glow: true
   
   warp-speed:
@@ -527,12 +543,15 @@ speed-items:
     lore:
       - "&f━━━━━━━━━━━━━━━━"
       - "&7▸ 终极飞行速度"
-      - "&7▸ 价格: &6{price} &7金币"
+      - "&7▸ 永久价格: &6{price} &7金币"
       - "&7▸ 速度: &d1.0"
       - "&7▸ 等级: &a★★★★★★★"
       - "&f━━━━━━━━━━━━━━━━"
       - "{status}"
+      - "&e&l➤ 左键永久购买"
+      - "&b&l➤ 右键时间购买"
     command: "fly speed buy warp_speed"
+    right-command: "gui:speed-time:warp_speed"
     glow: true
 
   # 返回按钮
