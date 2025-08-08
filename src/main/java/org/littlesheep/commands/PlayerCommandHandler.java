@@ -4,6 +4,7 @@ import org.bukkit.entity.Player;
 import org.littlesheep.paytofly;
 import org.littlesheep.utils.DataValidator;
 import org.bukkit.ChatColor;
+import org.littlesheep.gui.EnhancedFlightShopGUI;
 
 import java.util.List;
 
@@ -24,7 +25,8 @@ public class PlayerCommandHandler {
      */
     public boolean handlePlayerCommand(Player player, String[] args) {
         if (args.length == 0) {
-            plugin.getFlightShopGUI().openGUI(player);
+            // 打开增强版GUI主界面
+            plugin.getFlightShopGUI().openGUI(player, EnhancedFlightShopGUI.GUIType.MAIN);
             return true;
         }
 
@@ -41,6 +43,9 @@ public class PlayerCommandHandler {
                 return handleEffectCommand(player, args);
             case "speed":
                 return handleSpeedCommand(player, args);
+            case "shop":
+            case "gui":
+                return handleShopCommand(player, args);
             default:
                 return handlePurchaseCommand(player, args);
         }
@@ -556,6 +561,8 @@ public class PlayerCommandHandler {
         // 检查是否已拥有
         if (plugin.getEffectManager().hasEffectPermission(player, effectType)) {
             player.sendMessage(prefix + plugin.getLang().getMessage("effect-already-owned"));
+            // 如果已拥有，直接切换到这个特效
+            setPlayerEffect(player, effectName);
             return;
         }
         
@@ -571,6 +578,10 @@ public class PlayerCommandHandler {
             player.sendMessage(prefix + plugin.getLang().getMessage("effect-purchase-success", 
                 "{effect}", effectType.getName(),
                 "{price}", String.format("%.2f", price)));
+            
+            // 购买成功后自动激活特效
+            setPlayerEffect(player, effectName);
+            player.sendMessage(prefix + "&a特效已自动激活！");
         } else {
             player.sendMessage(prefix + plugin.getLang().getMessage("effect-purchase-failed"));
         }
@@ -585,6 +596,8 @@ public class PlayerCommandHandler {
         // 检查是否已拥有
         if (plugin.getSpeedManager().hasSpeedPermission(player, speedLevel)) {
             player.sendMessage(prefix + plugin.getLang().getMessage("speed-already-owned"));
+            // 如果已拥有，直接切换到这个速度
+            setPlayerSpeed(player, speedName);
             return;
         }
         
@@ -600,8 +613,52 @@ public class PlayerCommandHandler {
             player.sendMessage(prefix + plugin.getLang().getMessage("speed-purchase-success", 
                 "{speed}", speedLevel.getDisplayName(),
                 "{price}", String.format("%.2f", price)));
+            
+            // 购买成功后自动激活速度
+            setPlayerSpeed(player, speedName);
+            player.sendMessage(prefix + "&a速度已自动激活！");
         } else {
             player.sendMessage(prefix + plugin.getLang().getMessage("speed-purchase-failed"));
+        }
+    }
+
+    /**
+     * 处理商店/GUI命令
+     */
+    private boolean handleShopCommand(Player player, String[] args) {
+        if (args.length == 1) {
+            // 打开主商店
+            plugin.getFlightShopGUI().openGUI(player, EnhancedFlightShopGUI.GUIType.MAIN);
+            return true;
+        } else if (args.length == 2) {
+            String shopType = args[1].toLowerCase();
+            try {
+                switch (shopType) {
+                    case "main":
+                    case "time":
+                        plugin.getFlightShopGUI().openGUI(player, EnhancedFlightShopGUI.GUIType.MAIN);
+                        break;
+                    case "effect":
+                    case "effects":
+                        plugin.getFlightShopGUI().openGUI(player, EnhancedFlightShopGUI.GUIType.EFFECTS);
+                        break;
+                    case "speed":
+                    case "speeds":
+                        plugin.getFlightShopGUI().openGUI(player, EnhancedFlightShopGUI.GUIType.SPEEDS);
+                        break;
+                    default:
+                        player.sendMessage(prefix + "&c未知的商店类型！可用类型: main, effects, speeds");
+                        break;
+                }
+            } catch (Exception e) {
+                plugin.getLogger().severe("打开GUI时出错: " + e.getMessage());
+                player.sendMessage(prefix + "&c打开商店时出错，请联系管理员");
+                e.printStackTrace();
+            }
+            return true;
+        } else {
+            player.sendMessage(prefix + "&c用法: /fly shop [main|effects|speeds]");
+            return true;
         }
     }
 

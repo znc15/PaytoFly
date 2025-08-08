@@ -56,6 +56,24 @@ public class SqliteStorage implements Storage {
                 "speed_name TEXT, " +
                 "PRIMARY KEY (uuid, speed_name))"
             );
+            
+            // 时间限制特效购买记录表
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS player_effect_times (" +
+                "uuid TEXT, " +
+                "effect_name TEXT, " +
+                "end_time INTEGER, " +
+                "PRIMARY KEY (uuid, effect_name))"
+            );
+            
+            // 时间限制速度购买记录表
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS player_speed_times (" +
+                "uuid TEXT, " +
+                "speed_name TEXT, " +
+                "end_time INTEGER, " +
+                "PRIMARY KEY (uuid, speed_name))"
+            );
         }
     }
 
@@ -247,5 +265,165 @@ public class SqliteStorage implements Storage {
             plugin.getLogger().severe("获取所有玩家速度时出错: " + e.getMessage());
         }
         return allSpeeds;
+    }
+
+    // ============= 时间限制特效购买记录相关方法 =============
+    
+    @Override
+    public void setPlayerEffectTime(UUID uuid, String effectName, long endTime) {
+        try (PreparedStatement stmt = connection.prepareStatement(
+            "INSERT OR REPLACE INTO player_effect_times (uuid, effect_name, end_time) VALUES (?, ?, ?)"
+        )) {
+            stmt.setString(1, uuid.toString());
+            stmt.setString(2, effectName);
+            stmt.setLong(3, endTime);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            plugin.getLogger().severe("设置玩家特效时间时出错: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public Long getPlayerEffectTime(UUID uuid, String effectName) {
+        try (PreparedStatement stmt = connection.prepareStatement(
+            "SELECT end_time FROM player_effect_times WHERE uuid = ? AND effect_name = ?"
+        )) {
+            stmt.setString(1, uuid.toString());
+            stmt.setString(2, effectName);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getLong("end_time");
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().severe("获取玩家特效时间时出错: " + e.getMessage());
+        }
+        return null;
+    }
+
+    @Override
+    public Map<String, Long> getPlayerEffectTimes(UUID uuid) {
+        Map<String, Long> effectTimes = new HashMap<>();
+        try (PreparedStatement stmt = connection.prepareStatement(
+            "SELECT effect_name, end_time FROM player_effect_times WHERE uuid = ?"
+        )) {
+            stmt.setString(1, uuid.toString());
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                effectTimes.put(rs.getString("effect_name"), rs.getLong("end_time"));
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().severe("获取玩家特效时间列表时出错: " + e.getMessage());
+        }
+        return effectTimes;
+    }
+
+    @Override
+    public void removePlayerEffectTime(UUID uuid, String effectName) {
+        try (PreparedStatement stmt = connection.prepareStatement(
+            "DELETE FROM player_effect_times WHERE uuid = ? AND effect_name = ?"
+        )) {
+            stmt.setString(1, uuid.toString());
+            stmt.setString(2, effectName);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            plugin.getLogger().severe("删除玩家特效时间时出错: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<UUID, Map<String, Long>> getAllPlayerEffectTimes() {
+        Map<UUID, Map<String, Long>> allEffectTimes = new HashMap<>();
+        try (Statement stmt = connection.createStatement()) {
+            ResultSet rs = stmt.executeQuery("SELECT * FROM player_effect_times");
+            while (rs.next()) {
+                UUID uuid = UUID.fromString(rs.getString("uuid"));
+                String effectName = rs.getString("effect_name");
+                long endTime = rs.getLong("end_time");
+                allEffectTimes.computeIfAbsent(uuid, k -> new HashMap<>()).put(effectName, endTime);
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().severe("获取所有玩家特效时间时出错: " + e.getMessage());
+        }
+        return allEffectTimes;
+    }
+
+    // ============= 时间限制速度购买记录相关方法 =============
+    
+    @Override
+    public void setPlayerSpeedTime(UUID uuid, String speedName, long endTime) {
+        try (PreparedStatement stmt = connection.prepareStatement(
+            "INSERT OR REPLACE INTO player_speed_times (uuid, speed_name, end_time) VALUES (?, ?, ?)"
+        )) {
+            stmt.setString(1, uuid.toString());
+            stmt.setString(2, speedName);
+            stmt.setLong(3, endTime);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            plugin.getLogger().severe("设置玩家速度时间时出错: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public Long getPlayerSpeedTime(UUID uuid, String speedName) {
+        try (PreparedStatement stmt = connection.prepareStatement(
+            "SELECT end_time FROM player_speed_times WHERE uuid = ? AND speed_name = ?"
+        )) {
+            stmt.setString(1, uuid.toString());
+            stmt.setString(2, speedName);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getLong("end_time");
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().severe("获取玩家速度时间时出错: " + e.getMessage());
+        }
+        return null;
+    }
+
+    @Override
+    public Map<String, Long> getPlayerSpeedTimes(UUID uuid) {
+        Map<String, Long> speedTimes = new HashMap<>();
+        try (PreparedStatement stmt = connection.prepareStatement(
+            "SELECT speed_name, end_time FROM player_speed_times WHERE uuid = ?"
+        )) {
+            stmt.setString(1, uuid.toString());
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                speedTimes.put(rs.getString("speed_name"), rs.getLong("end_time"));
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().severe("获取玩家速度时间列表时出错: " + e.getMessage());
+        }
+        return speedTimes;
+    }
+
+    @Override
+    public void removePlayerSpeedTime(UUID uuid, String speedName) {
+        try (PreparedStatement stmt = connection.prepareStatement(
+            "DELETE FROM player_speed_times WHERE uuid = ? AND speed_name = ?"
+        )) {
+            stmt.setString(1, uuid.toString());
+            stmt.setString(2, speedName);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            plugin.getLogger().severe("删除玩家速度时间时出错: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<UUID, Map<String, Long>> getAllPlayerSpeedTimes() {
+        Map<UUID, Map<String, Long>> allSpeedTimes = new HashMap<>();
+        try (Statement stmt = connection.createStatement()) {
+            ResultSet rs = stmt.executeQuery("SELECT * FROM player_speed_times");
+            while (rs.next()) {
+                UUID uuid = UUID.fromString(rs.getString("uuid"));
+                String speedName = rs.getString("speed_name");
+                long endTime = rs.getLong("end_time");
+                allSpeedTimes.computeIfAbsent(uuid, k -> new HashMap<>()).put(speedName, endTime);
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().severe("获取所有玩家速度时间时出错: " + e.getMessage());
+        }
+        return allSpeedTimes;
     }
 } 

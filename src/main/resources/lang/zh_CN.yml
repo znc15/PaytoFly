@@ -241,3 +241,15 @@ messages:
   speed-not-for-sale: "&c该速度等级不可购买"
   speed-purchase-success: "&a成功购买速度 {speed} &a花费 &6{price} &a金币！"
   speed-purchase-failed: "&c购买失败！余额不足或系统错误"
+
+  # GUI增强功能相关
+  gui-shop-main: "&a已打开主商店界面"
+  gui-shop-effects: "&d已打开特效商店界面"
+  gui-shop-speeds: "&a已打开速度商店界面"
+  gui-navigation-back: "&7点击返回上一页"
+  gui-item-glow: "&e✨ 已拥有"
+  gui-price-display: "&6价格: {price} 金币"
+  gui-owned-item: "&a✓ 已拥有"
+  gui-free-item: "&a✓ 免费使用"
+  gui-buy-hint: "&c➤ 点击购买"
+  gui-unavailable: "&c暂不可用"

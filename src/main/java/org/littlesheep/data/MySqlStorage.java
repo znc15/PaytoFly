@@ -204,6 +204,32 @@ public class MySqlStorage implements Storage {
                 table
             );
             stmt.executeUpdate(createSpeedsTableSQL);
+            
+            // 时间限制特效购买记录表
+            String createEffectTimesTableSQL = String.format(
+                "CREATE TABLE IF NOT EXISTS %s_effect_times (" +
+                "uuid VARCHAR(36), " +
+                "effect_name VARCHAR(50), " +
+                "end_time BIGINT NOT NULL, " +
+                "purchased_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                "PRIMARY KEY (uuid, effect_name)" +
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+                table
+            );
+            stmt.executeUpdate(createEffectTimesTableSQL);
+            
+            // 时间限制速度购买记录表
+            String createSpeedTimesTableSQL = String.format(
+                "CREATE TABLE IF NOT EXISTS %s_speed_times (" +
+                "uuid VARCHAR(36), " +
+                "speed_name VARCHAR(50), " +
+                "end_time BIGINT NOT NULL, " +
+                "purchased_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                "PRIMARY KEY (uuid, speed_name)" +
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+                table
+            );
+            stmt.executeUpdate(createSpeedTimesTableSQL);
         }
     }
 
@@ -523,6 +549,168 @@ public class MySqlStorage implements Storage {
                 }
             }
             return allSpeeds;
+        });
+    }
+
+    // ============= 时间限制特效购买记录相关方法 =============
+    
+    @Override
+    public void setPlayerEffectTime(UUID uuid, String effectName, long endTime) {
+        executeWithRetry("设置玩家特效时间", connection -> {
+            String sql = String.format("REPLACE INTO %s_effect_times (uuid, effect_name, end_time) VALUES (?, ?, ?)", table);
+            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.setString(1, uuid.toString());
+                stmt.setString(2, effectName);
+                stmt.setLong(3, endTime);
+                stmt.executeUpdate();
+            }
+            return null;
+        });
+    }
+
+    @Override
+    public Long getPlayerEffectTime(UUID uuid, String effectName) {
+        return executeWithRetry("获取玩家特效时间", connection -> {
+            String sql = String.format("SELECT end_time FROM %s_effect_times WHERE uuid = ? AND effect_name = ?", table);
+            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.setString(1, uuid.toString());
+                stmt.setString(2, effectName);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        return rs.getLong("end_time");
+                    }
+                    return null;
+                }
+            }
+        });
+    }
+
+    @Override
+    public Map<String, Long> getPlayerEffectTimes(UUID uuid) {
+        return executeWithRetry("获取玩家特效时间列表", connection -> {
+            Map<String, Long> effectTimes = new HashMap<>();
+            String sql = String.format("SELECT effect_name, end_time FROM %s_effect_times WHERE uuid = ?", table);
+            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.setString(1, uuid.toString());
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        effectTimes.put(rs.getString("effect_name"), rs.getLong("end_time"));
+                    }
+                }
+            }
+            return effectTimes;
+        });
+    }
+
+    @Override
+    public void removePlayerEffectTime(UUID uuid, String effectName) {
+        executeWithRetry("删除玩家特效时间", connection -> {
+            String sql = String.format("DELETE FROM %s_effect_times WHERE uuid = ? AND effect_name = ?", table);
+            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.setString(1, uuid.toString());
+                stmt.setString(2, effectName);
+                stmt.executeUpdate();
+            }
+            return null;
+        });
+    }
+
+    @Override
+    public Map<UUID, Map<String, Long>> getAllPlayerEffectTimes() {
+        return executeWithRetry("获取所有玩家特效时间", connection -> {
+            Map<UUID, Map<String, Long>> allEffectTimes = new HashMap<>();
+            String sql = String.format("SELECT uuid, effect_name, end_time FROM %s_effect_times", table);
+            try (Statement stmt = connection.createStatement();
+                 ResultSet rs = stmt.executeQuery(sql)) {
+                while (rs.next()) {
+                    UUID uuid = UUID.fromString(rs.getString("uuid"));
+                    String effectName = rs.getString("effect_name");
+                    long endTime = rs.getLong("end_time");
+                    allEffectTimes.computeIfAbsent(uuid, k -> new HashMap<>()).put(effectName, endTime);
+                }
+            }
+            return allEffectTimes;
+        });
+    }
+
+    // ============= 时间限制速度购买记录相关方法 =============
+    
+    @Override
+    public void setPlayerSpeedTime(UUID uuid, String speedName, long endTime) {
+        executeWithRetry("设置玩家速度时间", connection -> {
+            String sql = String.format("REPLACE INTO %s_speed_times (uuid, speed_name, end_time) VALUES (?, ?, ?)", table);
+            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.setString(1, uuid.toString());
+                stmt.setString(2, speedName);
+                stmt.setLong(3, endTime);
+                stmt.executeUpdate();
+            }
+            return null;
+        });
+    }
+
+    @Override
+    public Long getPlayerSpeedTime(UUID uuid, String speedName) {
+        return executeWithRetry("获取玩家速度时间", connection -> {
+            String sql = String.format("SELECT end_time FROM %s_speed_times WHERE uuid = ? AND speed_name = ?", table);
+            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.setString(1, uuid.toString());
+                stmt.setString(2, speedName);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        return rs.getLong("end_time");
+                    }
+                    return null;
+                }
+            }
+        });
+    }
+
+    @Override
+    public Map<String, Long> getPlayerSpeedTimes(UUID uuid) {
+        return executeWithRetry("获取玩家速度时间列表", connection -> {
+            Map<String, Long> speedTimes = new HashMap<>();
+            String sql = String.format("SELECT speed_name, end_time FROM %s_speed_times WHERE uuid = ?", table);
+            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.setString(1, uuid.toString());
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        speedTimes.put(rs.getString("speed_name"), rs.getLong("end_time"));
+                    }
+                }
+            }
+            return speedTimes;
+        });
+    }
+
+    @Override
+    public void removePlayerSpeedTime(UUID uuid, String speedName) {
+        executeWithRetry("删除玩家速度时间", connection -> {
+            String sql = String.format("DELETE FROM %s_speed_times WHERE uuid = ? AND speed_name = ?", table);
+            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.setString(1, uuid.toString());
+                stmt.setString(2, speedName);
+                stmt.executeUpdate();
+            }
+            return null;
+        });
+    }
+
+    @Override
+    public Map<UUID, Map<String, Long>> getAllPlayerSpeedTimes() {
+        return executeWithRetry("获取所有玩家速度时间", connection -> {
+            Map<UUID, Map<String, Long>> allSpeedTimes = new HashMap<>();
+            String sql = String.format("SELECT uuid, speed_name, end_time FROM %s_speed_times", table);
+            try (Statement stmt = connection.createStatement();
+                 ResultSet rs = stmt.executeQuery(sql)) {
+                while (rs.next()) {
+                    UUID uuid = UUID.fromString(rs.getString("uuid"));
+                    String speedName = rs.getString("speed_name");
+                    long endTime = rs.getLong("end_time");
+                    allSpeedTimes.computeIfAbsent(uuid, k -> new HashMap<>()).put(speedName, endTime);
+                }
+            }
+            return allSpeedTimes;
         });
     }
 }

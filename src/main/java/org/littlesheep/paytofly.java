@@ -19,8 +19,7 @@ import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SimplePie;
 import org.bstats.charts.SingleLineChart;
 import org.littlesheep.listeners.PlayerJoinListener;
-import org.littlesheep.gui.FlightShopGUI;
-import org.littlesheep.listeners.GUIListener;
+import org.littlesheep.gui.EnhancedFlightShopGUI;
 import org.littlesheep.utils.VersionManager;
 import org.littlesheep.utils.UpdateChecker;
 import org.littlesheep.utils.TimeManager;
@@ -50,7 +49,7 @@ public final class paytofly extends JavaPlugin {
     private LanguageManager lang;
     private OptimizedCountdownManager countdownManager;
     private static final int BSTATS_ID = 24712;
-    private FlightShopGUI shopGUI;
+    private EnhancedFlightShopGUI shopGUI;
     private VersionManager versionManager;
     private UpdateChecker updateChecker;
     private TimeManager timeManager;
@@ -87,16 +86,13 @@ public final class paytofly extends JavaPlugin {
         // 初始化语言管理器
         lang = new LanguageManager(this, getConfig().getString("language", "zh_CN"));
         
-        getLogger().info(lang.getMessage("plugin-loading"));
-        
         config = getConfig();
         prefix = config.getString("messages.prefix", "&7[&bPayToFly&7] ").replace("&", "§");
         
         // 初始化经济系统
-        getLogger().info(lang.getMessage("economy-init-detail"));
         economyManager = new EconomyManager(this);
         if (economyManager.isInitialized()) {
-            getLogger().info(lang.getMessage("economy-success-detail", "{name}", economyManager.getEconomyName()));
+            getLogger().info("§a经济系统初始化成功！使用: " + economyManager.getEconomyName());
             econ = economyManager.getCurrentEconomy() != null ? 
                    getServer().getServicesManager().getRegistration(Economy.class) != null ? 
                    getServer().getServicesManager().getRegistration(Economy.class).getProvider() : null : null;
@@ -106,14 +102,12 @@ public final class paytofly extends JavaPlugin {
         }
         
         // 初始化存储系统
-        getLogger().info(lang.getMessage("storage-init-detail"));
         try {
             storage = StorageFactory.createStorage(getConfig().getString("storage.type", "JSON"), this);
             storage.init();
             // 注册存储到资源管理器
             resourceManager.registerCloseable(storage);
-            getLogger().info(lang.getMessage("storage-success-detail", 
-                "{type}", getConfig().getString("storage.type", "JSON")));
+            getLogger().info("§a存储系统初始化成功！（类型：" + getConfig().getString("storage.type", "JSON") + "）");
         } catch (Exception e) {
             getLogger().severe(lang.getMessage("storage-failed-detail"));
             e.printStackTrace();
@@ -141,7 +135,6 @@ public final class paytofly extends JavaPlugin {
                 }
             }
         }
-        getLogger().info(lang.getMessage("data-loaded-detail", "{count}", String.valueOf(flyingPlayers.size())));
         
         // 注册事件监听器
         getServer().getPluginManager().registerEvents(new PlayerListener(this, storage), this);
@@ -156,20 +149,16 @@ public final class paytofly extends JavaPlugin {
         // 注册 PAPI 扩展
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new FlightExpansion(this).register();
-            getLogger().info(lang.getMessage("papi-hooked"));
         }
         
         // 初始化 bStats
         if (getConfig().getBoolean("metrics.enabled", true)) {
             setupMetrics();
-            getLogger().info(lang.getMessage("metrics-enabled"));
-        } else {
-            getLogger().info(lang.getMessage("metrics-disabled"));
         }
         
-        // 初始化GUI
-        shopGUI = new FlightShopGUI(this);
-        getServer().getPluginManager().registerEvents(new GUIListener(shopGUI), this);
+        // 初始化增强版GUI
+        shopGUI = new EnhancedFlightShopGUI(this);
+        getServer().getPluginManager().registerEvents(shopGUI, this);
         
         // 初始化并运行更新检查器
         updateChecker = new UpdateChecker(this);
@@ -204,9 +193,6 @@ public final class paytofly extends JavaPlugin {
             }
         });
         
-        getLogger().info(lang.getMessage("plugin-enabled-detail"));
-        getLogger().info(lang.getMessage("plugin-splash"));
-        
         loadMessageConfig();
         
         // 显示插件启动艺术字和说明
@@ -220,12 +206,12 @@ public final class paytofly extends JavaPlugin {
                 "                __/ |                        __/  |   \n" +
                 "               |___/                        |___ /    v");
         
-        getLogger().info(lang.getMessage("plugin-info-header"));
-        getLogger().info(lang.getMessage("plugin-info-author"));
-        getLogger().info(lang.getMessage("plugin-info-version", "{version}", getDescription().getVersion()));
-        getLogger().info(lang.getMessage("plugin-info-storage", "{type}", getConfig().getString("storage.type", "JSON")));
-        getLogger().info(lang.getMessage("plugin-info-language", "{language}", getConfig().getString("language", "zh_CN")));
-        getLogger().info(lang.getMessage("plugin-info-footer"));
+        getLogger().info("§6===== PayToFly 插件启动说明 =====");
+        getLogger().info("§6• 作者: LittleSheep");
+        getLogger().info("§6• 当前版本: v" + getDescription().getVersion());
+        getLogger().info("§6• 存储类型: " + getConfig().getString("storage.type", "JSON"));
+        getLogger().info("§6• 语言: " + getConfig().getString("language", "zh_CN"));
+        getLogger().info("§6===== Ciallo～(∠・ω< )⌒★ =====");
     }
 
     @Override
@@ -382,7 +368,11 @@ public final class paytofly extends JavaPlugin {
         return exceptionHandler;
     }
 
-    public FlightShopGUI getFlightShopGUI() {
+    public EnhancedFlightShopGUI getFlightShopGUI() {
+        return shopGUI;
+    }
+
+    public EnhancedFlightShopGUI getEnhancedFlightShopGUI() {
         return shopGUI;
     }
 

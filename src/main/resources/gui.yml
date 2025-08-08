@@ -1,67 +1,739 @@
-# GUI 设置
+# ================================
+# PayToFly 美化GUI配置文件
+# ================================
+version: 2.0
+
+# GUI基础设置
 settings:
-  title: "&b&l飞行商店"
-  size: 27 # GUI大小（必须是9的倍数）
-  fill-empty: true # 是否用装饰物填充空位
-  fill-material: BLACK_STAINED_GLASS_PANE # 装饰物材质
+  # 主界面设置
+  main:
+    title: "&b&l✈ &f飞行商店 &b&l✈"
+    size: 54 # 6行界面
+    fill-empty: true
+    fill-material: BLACK_STAINED_GLASS_PANE
+    fill-name: " "
+  
+  # 特效商店设置
+  effects:
+    title: "&d&l✨ &f特效商店 &d&l✨"
+    size: 54 # 6行界面
+    fill-empty: true
+    fill-material: PURPLE_STAINED_GLASS_PANE
+    fill-name: " "
+  
+  # 速度商店设置
+  speeds:
+    title: "&a&l⚡ &f速度商店 &a&l⚡"
+    size: 54 # 6行界面
+    fill-empty: true
+    fill-material: LIME_STAINED_GLASS_PANE
+    fill-name: " "
+  
+  # 特效时间购买设置
+  effect-time-purchase:
+    title: "&d&l✨ &f{effect_name} &d&l- 时间购买"
+    size: 45 # 5行界面
+    fill-empty: true
+    fill-material: PURPLE_STAINED_GLASS_PANE
+    fill-name: " "
+  
+  # 速度时间购买设置
+  speed-time-purchase:
+    title: "&a&l⚡ &f{speed_name} &a&l- 时间购买"
+    size: 45 # 5行界面
+    fill-empty: true
+    fill-material: LIME_STAINED_GLASS_PANE
+    fill-name: " "
+  
+  # 特效切换器设置
+  effect-switcher:
+    title: "&d&l✨ &f特效切换器"
+    size: 45 # 5行界面
+    fill-empty: true
+    fill-material: PURPLE_STAINED_GLASS_PANE
+    fill-name: " "
+  
+  # 速度切换器设置
+  speed-switcher:
+    title: "&a&l⚡ &f速度切换器"
+    size: 45 # 5行界面
+    fill-empty: true
+    fill-material: LIME_STAINED_GLASS_PANE
+    fill-name: " "
 
-# 商品设置
-items:
+# 主界面商品
+main-items:
+  # =============== 第一行：装饰 ===============
+  decoration1:
+    slot: 0
+    material: BLUE_STAINED_GLASS_PANE
+    name: " "
+    glow: false
+  
+  decoration2:
+    slot: 8
+    material: BLUE_STAINED_GLASS_PANE
+    name: " "
+    glow: false
+
+  # =============== 第二行：飞行时间 ===============
   hour:
-    slot: 10 # 位置 (0-26)
-    material: CLOCK # 物品材质
-    name: "&e&l1小时"
+    slot: 10
+    material: CLOCK
+    name: "&e&l⏰ 1小时飞行"
     lore:
-      - "&7点击购买1小时飞行时间"
-      - "&7价格: &6{cost} &7金币"
-      - "&7最低购买时间: &6{min_time}{unit}"
-      - ""
-      - "&a➜ 点击购买"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 购买 &e1小时 &7的飞行时间"
+      - "&7▸ 价格: &6{cost} &7金币"
+      - "&7▸ 适合短时间建造"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&a➤ 点击购买"
     command: "fly 1h"
-
+    glow: false
+  
   day:
     slot: 12
     material: SUNFLOWER
-    name: "&e&l1天"
+    name: "&e&l☀ 1天飞行"
     lore:
-      - "&7点击购买1天飞行时间"
-      - "&7价格: &6{cost} &7金币"
-      - "&7最低购买时间: &6{min_time}{unit}"
-      - ""
-      - "&a➜ 点击购买"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 购买 &e1天 &7的飞行时间"
+      - "&7▸ 价格: &6{cost} &7金币"
+      - "&7▸ 推荐日常使用"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&a➤ 点击购买"
     command: "fly 1d"
-
+    glow: true
+  
   week:
     slot: 14
     material: DIAMOND
-    name: "&e&l1周"
+    name: "&e&l💎 1周飞行"
     lore:
-      - "&7点击购买1周飞行时间"
-      - "&7价格: &6{cost} &7金币"
-      - "&7最低购买时间: &6{min_time}{unit}"
-      - ""
-      - "&a➜ 点击购买"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 购买 &e1周 &7的飞行时间"
+      - "&7▸ 价格: &6{cost} &7金币"
+      - "&7▸ 长期建造首选"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&a➤ 点击购买"
     command: "fly 1w"
-
+    glow: false
+  
   month:
     slot: 16
     material: NETHER_STAR
-    name: "&e&l1个月"
+    name: "&e&l⭐ 1月飞行"
     lore:
-      - "&7点击购买1个月飞行时间"
-      - "&7价格: &6{cost} &7金币"
-      - "&7最低购买时间: &6{min_time}{unit}"
-      - ""
-      - "&a➜ 点击购买"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 购买 &e1个月 &7的飞行时间"
+      - "&7▸ 价格: &6{cost} &7金币"
+      - "&7▸ 终极VIP体验"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&a➤ 点击购买"
     command: "fly 1mo"
+    glow: true
 
+  # =============== 第三行：功能按钮 ===============
+  custom-time:
+    slot: 21
+    material: REDSTONE
+    name: "&c&l⚙ 自定义时间"
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 自定义购买时间"
+      - "&7▸ 每分钟 &6{price} &7金币"
+      - "&7▸ 最少 &e{min} &7分钟"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&a➤ 点击自定义"
+    glow: false
+  
+  effects-shop:
+    slot: 23
+    material: FIREWORK_ROCKET
+    name: "&d&l✨ 特效商店"
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 购买华丽的飞行特效"
+      - "&7▸ 7种不同等级特效"
+      - "&7▸ 让飞行更加炫酷"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&d➤ 点击进入"
+    glow: true
+  
+  speeds-shop:
+    slot: 25
+    material: SUGAR
+    name: "&a&l⚡ 速度商店"
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 购买不同的飞行速度"
+      - "&7▸ 7个速度等级"
+      - "&7▸ 从缓慢到光速"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&a➤ 点击进入"
+    glow: true
+
+  # =============== 第四行：信息显示 ===============
+  player-info:
+    slot: 31
+    material: PLAYER_HEAD
+    name: "&b&l👤 个人信息"
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7玩家: &e{player}"
+      - "&7余额: &6{balance} &7金币"
+      - "&7飞行状态: {flight_status}"
+      - "&7剩余时间: &e{remaining_time}"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7当前特效: {current_effect}"
+      - "&7当前速度: {current_speed}"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&a&l➤ 左键切换特效"
+      - "&b&l➤ 右键切换速度"
+    skull-owner: "{player}"
+    right-command: "gui:speed-switcher"
+    command: "gui:effect-switcher"
+    glow: false
+
+  # =============== 第五行：装饰 ===============
+  decoration3:
+    slot: 45
+    material: BLUE_STAINED_GLASS_PANE
+    name: " "
+  
+  decoration4:
+    slot: 53
+    material: BLUE_STAINED_GLASS_PANE
+    name: " "
+
+# 特效商店物品
+effect-items:
+  basic:
+    slot: 10
+    material: SNOWBALL
+    name: "&f&l❄ 基础特效"
+    price: 100.0
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 简单的白色粒子效果"
+      - "&7▸ 永久价格: &6{price} &7金币"
+      - "&7▸ 等级: &a★☆☆☆☆☆☆"
+      - "&7▸ 适合新手使用"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "{status}"
+      - "&e&l➤ 左键永久购买"
+      - "&b&l➤ 右键时间购买"
+    command: "fly effect buy basic"
+    right-command: "gui:effect-time:basic"
+    glow: false
+  
+  basic-time:
+    slot: 19
+    material: CLOCK
+    name: "&f&l⏰ 基础特效 &7(时间购买)"
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 时间限制购买选项"
+      - "&7▸ 1小时: &6{hour_price} &7金币"
+      - "&7▸ 1天: &6{day_price} &7金币"
+      - "&7▸ 1周: &6{week_price} &7金币"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&a➤ 点击选择时长"
+    command: "gui:effect-time:basic"
+    glow: false
+  
+  rainbow:
+    slot: 12
+    material: PRISMARINE_SHARD
+    name: "&c&l🌈 彩虹特效"
+    price: 500.0
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 绚丽的彩色尾迹"
+      - "&7▸ 永久价格: &6{price} &7金币"
+      - "&7▸ 等级: &a★★☆☆☆☆☆"
+      - "&7▸ 七彩光芒闪闪"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "{status}"
+      - "&e&l➤ 左键永久购买"
+      - "&b&l➤ 右键时间购买"
+    command: "fly effect buy rainbow"
+    right-command: "gui:effect-time:rainbow"
+    glow: true
+  
+  rainbow-time:
+    slot: 21
+    material: CLOCK
+    name: "&c&l⏰ 彩虹特效 &7(时间购买)"
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 时间限制购买选项"
+      - "&7▸ 1小时: &6{hour_price} &7金币"
+      - "&7▸ 1天: &6{day_price} &7金币"
+      - "&7▸ 1周: &6{week_price} &7金币"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&a➤ 点击选择时长"
+    command: "gui:effect-time:rainbow"
+    glow: false
+  
+  star:
+    slot: 14
+    material: NETHER_STAR
+    name: "&e&l⭐ 星星特效"
+    price: 800.0
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 闪烁的星星粒子"
+      - "&7▸ 永久价格: &6{price} &7金币"
+      - "&7▸ 等级: &a★★★☆☆☆☆"
+      - "&7▸ 如繁星般闪耀"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "{status}"
+      - "&e&l➤ 左键永久购买"
+      - "&b&l➤ 右键时间购买"
+    command: "fly effect buy star"
+    right-command: "gui:effect-time:star"
+    glow: false
+  
+  star-time:
+    slot: 23
+    material: CLOCK
+    name: "&e&l⏰ 星星特效 &7(时间购买)"
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 时间限制购买选项"
+      - "&7▸ 1小时: &6{hour_price} &7金币"
+      - "&7▸ 1天: &6{day_price} &7金币"
+      - "&7▸ 1周: &6{week_price} &7金币"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&a➤ 点击选择时长"
+    command: "gui:effect-time:star"
+    glow: false
+  
+  fire:
+    slot: 16
+    material: FIRE_CHARGE
+    name: "&c&l🔥 火焰特效"
+    price: 1200.0
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 炽热的火花和烟雾"
+      - "&7▸ 永久价格: &6{price} &7金币"
+      - "&7▸ 等级: &a★★★★☆☆☆"
+      - "&7▸ 如凤凰般炫目"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "{status}"
+      - "&e&l➤ 左键永久购买"
+      - "&b&l➤ 右键时间购买"
+    command: "fly effect buy fire"
+    right-command: "gui:effect-time:fire"
+    glow: true
+  
+  fire-time:
+    slot: 25
+    material: CLOCK
+    name: "&c&l⏰ 火焰特效 &7(时间购买)"
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 时间限制购买选项"
+      - "&7▸ 1小时: &6{hour_price} &7金币"
+      - "&7▸ 1天: &6{day_price} &7金币"
+      - "&7▸ 1周: &6{week_price} &7金币"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&a➤ 点击选择时长"
+    command: "gui:effect-time:fire"
+    glow: false
+  
+  magic:
+    slot: 28
+    material: ENCHANTED_BOOK
+    name: "&5&l✨ 魔法特效"
+    price: 2000.0
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 神秘的魔法粒子"
+      - "&7▸ 永久价格: &6{price} &7金币"
+      - "&7▸ 等级: &a★★★★★☆☆"
+      - "&7▸ 魔法师的专属"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "{status}"
+      - "&e&l➤ 左键永久购买"
+      - "&b&l➤ 右键时间购买"
+    command: "fly effect buy magic"
+    right-command: "gui:effect-time:magic"
+    glow: true
+  
+  magic-time:
+    slot: 37
+    material: CLOCK
+    name: "&5&l⏰ 魔法特效 &7(时间购买)"
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 时间限制购买选项"
+      - "&7▸ 1小时: &6{hour_price} &7金币"
+      - "&7▸ 1天: &6{day_price} &7金币"
+      - "&7▸ 1周: &6{week_price} &7金币"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&a➤ 点击选择时长"
+    command: "gui:effect-time:magic"
+    glow: false
+  
+  dragon:
+    slot: 30
+    material: DRAGON_BREATH
+    name: "&d&l🐉 龙息特效"
+    price: 5000.0
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 终极龙息效果"
+      - "&7▸ 永久价格: &6{price} &7金币"
+      - "&7▸ 等级: &a★★★★★★★"
+      - "&7▸ 王者的象征"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "{status}"
+      - "&e&l➤ 左键永久购买"
+      - "&b&l➤ 右键时间购买"
+    command: "fly effect buy dragon"
+    right-command: "gui:effect-time:dragon"
+    glow: true
+  
+  dragon-time:
+    slot: 39
+    material: CLOCK
+    name: "&d&l⏰ 龙息特效 &7(时间购买)"
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 时间限制购买选项"
+      - "&7▸ 1小时: &6{hour_price} &7金币"
+      - "&7▸ 1天: &6{day_price} &7金币"
+      - "&7▸ 1周: &6{week_price} &7金币"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&a➤ 点击选择时长"
+    command: "gui:effect-time:dragon"
+    glow: false
+
+  # 返回按钮
+  back:
+    slot: 49
+    material: BARRIER
+    name: "&c&l← 返回主菜单"
+    lore:
+      - "&7点击返回主菜单"
+    command: "gui:main"
+
+# 速度商店物品
+speed-items:
+  slow:
+    slot: 10
+    material: COBWEB
+    name: "&7&l🐌 缓慢速度"
+    price: 50.0
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 精细操作的理想速度"
+      - "&7▸ 价格: &6{price} &7金币"
+      - "&7▸ 速度: &70.05"
+      - "&7▸ 等级: &a★☆☆☆☆☆☆"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "{status}"
+    command: "fly speed buy slow"
+    glow: false
+  
+  normal:
+    slot: 11
+    material: FEATHER
+    name: "&f&l🕊 普通速度"
+    price: 0.0
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 标准飞行速度"
+      - "&7▸ 价格: &a免费"
+      - "&7▸ 速度: &f0.1"
+      - "&7▸ 等级: &a★★☆☆☆☆☆"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&a✓ 免费使用"
+    command: "fly speed buy normal"
+    glow: false
+  
+  fast:
+    slot: 12
+    material: SUGAR
+    name: "&a&l🏃 快速"
+    price: 200.0
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 提升移动效率"
+      - "&7▸ 价格: &6{price} &7金币"
+      - "&7▸ 速度: &a0.2"
+      - "&7▸ 等级: &a★★★☆☆☆☆"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "{status}"
+    command: "fly speed buy fast"
+    glow: false
+  
+  very-fast:
+    slot: 14
+    material: RABBIT_FOOT
+    name: "&e&l🐰 极速"
+    price: 600.0
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 高速飞行体验"
+      - "&7▸ 价格: &6{price} &7金币"
+      - "&7▸ 速度: &e0.3"
+      - "&7▸ 等级: &a★★★★☆☆☆"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "{status}"
+    command: "fly speed buy very_fast"
+    glow: true
+  
+  super-fast:
+    slot: 16
+    material: POTION
+    name: "&6&l⚡ 超速"
+    price: 1500.0
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 极快移动速度"
+      - "&7▸ 价格: &6{price} &7金币"
+      - "&7▸ 速度: &60.5"
+      - "&7▸ 等级: &a★★★★★☆☆"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "{status}"
+    command: "fly speed buy super_fast"
+    glow: true
+  
+  light-speed:
+    slot: 21
+    material: GLOWSTONE_DUST
+    name: "&b&l💫 光速"
+    price: 3000.0
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 接近光速飞行"
+      - "&7▸ 价格: &6{price} &7金币"
+      - "&7▸ 速度: &b0.8"
+      - "&7▸ 等级: &a★★★★★★☆"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "{status}"
+    command: "fly speed buy light_speed"
+    glow: true
+  
+  warp-speed:
+    slot: 23
+    material: END_CRYSTAL
+    name: "&d&l🚀 曲速"
+    price: 8000.0
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 终极飞行速度"
+      - "&7▸ 价格: &6{price} &7金币"
+      - "&7▸ 速度: &d1.0"
+      - "&7▸ 等级: &a★★★★★★★"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "{status}"
+    command: "fly speed buy warp_speed"
+    glow: true
+
+  # 返回按钮
+  back:
+    slot: 40
+    material: BARRIER
+    name: "&c&l← 返回主菜单"
+    lore:
+      - "&7点击返回主菜单"
+    command: "gui:main"
+
+# 自定义时间配置
 custom-time:
   enabled: true
-  slot: 22
-  item: CLOCK
-  name: "&e自定义购买时间"
-  lore:
-    - "&7点击后在聊天框输入"
-    - "&7想要购买的时间（分钟）"
-    - "&7每分钟 &6%price% &7金币"
-  use-main-config-price: true 
+  price-per-minute: true # 使用每分钟价格计算
+
+# 特效切换器物品
+effect-switcher-items:
+  basic:
+    slot: 10
+    material: SNOWBALL
+    name: "&f&l❄ 基础特效"
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 简单的白色粒子效果"
+      - "&7▸ 等级: &a★☆☆☆☆☆☆"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "{status}"
+    command: "fly effect set basic"
+    glow: false
+  
+  rainbow:
+    slot: 11
+    material: PRISMARINE_SHARD
+    name: "&c&l🌈 彩虹特效"
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 绚丽的彩色尾迹"
+      - "&7▸ 等级: &a★★☆☆☆☆☆"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "{status}"
+    command: "fly effect set rainbow"
+    glow: false
+  
+  star:
+    slot: 12
+    material: NETHER_STAR
+    name: "&e&l⭐ 星星特效"
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 闪烁的星星粒子"
+      - "&7▸ 等级: &a★★★☆☆☆☆"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "{status}"
+    command: "fly effect set star"
+    glow: false
+  
+  fire:
+    slot: 13
+    material: FIRE_CHARGE
+    name: "&c&l🔥 火焰特效"
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 炽热的火花和烟雾"
+      - "&7▸ 等级: &a★★★★☆☆☆"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "{status}"
+    command: "fly effect set fire"
+    glow: false
+  
+  magic:
+    slot: 14
+    material: ENCHANTED_BOOK
+    name: "&5&l✨ 魔法特效"
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 神秘的魔法粒子"
+      - "&7▸ 等级: &a★★★★★☆☆"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "{status}"
+    command: "fly effect set magic"
+    glow: false
+  
+  dragon:
+    slot: 15
+    material: DRAGON_BREATH
+    name: "&d&l🐉 龙息特效"
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 终极龙息效果"
+      - "&7▸ 等级: &a★★★★★★★"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "{status}"
+    command: "fly effect set dragon"
+    glow: false
+  
+  back:
+    slot: 40
+    material: BARRIER
+    name: "&c&l← 返回主菜单"
+    lore:
+      - "&7点击返回主菜单"
+    command: "gui:main"
+
+# 速度切换器物品
+speed-switcher-items:
+  slow:
+    slot: 10
+    material: COBWEB
+    name: "&7&l🐌 缓慢速度"
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 精细操作的理想速度"
+      - "&7▸ 速度: &70.05"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "{status}"
+    command: "fly speed set slow"
+    glow: false
+  
+  normal:
+    slot: 11
+    material: FEATHER
+    name: "&f&l🕊 普通速度"
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 标准飞行速度"
+      - "&7▸ 速度: &f0.1"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "{status}"
+    command: "fly speed set normal"
+    glow: false
+  
+  fast:
+    slot: 12
+    material: SUGAR
+    name: "&a&l🏃 快速"
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 提升移动效率"
+      - "&7▸ 速度: &a0.2"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "{status}"
+    command: "fly speed set fast"
+    glow: false
+  
+  very-fast:
+    slot: 13
+    material: RABBIT_FOOT
+    name: "&e&l🐰 极速"
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 高速飞行体验"
+      - "&7▸ 速度: &e0.3"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "{status}"
+    command: "fly speed set very_fast"
+    glow: false
+  
+  super-fast:
+    slot: 14
+    material: POTION
+    name: "&6&l⚡ 超速"
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 极快移动速度"
+      - "&7▸ 速度: &60.5"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "{status}"
+    command: "fly speed set super_fast"
+    glow: false
+  
+  light-speed:
+    slot: 15
+    material: GLOWSTONE_DUST
+    name: "&b&l💫 光速"
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 接近光速飞行"
+      - "&7▸ 速度: &b0.8"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "{status}"
+    command: "fly speed set light_speed"
+    glow: false
+  
+  warp-speed:
+    slot: 16
+    material: END_CRYSTAL
+    name: "&d&l🚀 曲速"
+    lore:
+      - "&f━━━━━━━━━━━━━━━━"
+      - "&7▸ 终极飞行速度"
+      - "&7▸ 速度: &d1.0"
+      - "&f━━━━━━━━━━━━━━━━"
+      - "{status}"
+    command: "fly speed set warp_speed"
+    glow: false
+  
+  back:
+    slot: 40
+    material: BARRIER
+    name: "&c&l← 返回主菜单"
+    lore:
+      - "&7点击返回主菜单"
+    command: "gui:main" 

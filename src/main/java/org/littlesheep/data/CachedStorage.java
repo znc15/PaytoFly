@@ -4,6 +4,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.littlesheep.cache.FlightDataCache;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -231,5 +232,103 @@ public class CachedStorage implements Storage {
         }
         
         return sb.toString();
+    }
+
+    // ========== 特效购买相关方法 ==========
+
+    @Override
+    public void addPlayerEffect(UUID uuid, String effectName) {
+        delegate.addPlayerEffect(uuid, effectName);
+    }
+
+    @Override
+    public void removePlayerEffect(UUID uuid, String effectName) {
+        delegate.removePlayerEffect(uuid, effectName);
+    }
+
+    @Override
+    public Set<String> getPlayerEffects(UUID uuid) {
+        return delegate.getPlayerEffects(uuid);
+    }
+
+    @Override
+    public Map<UUID, Set<String>> getAllPlayerEffects() {
+        return delegate.getAllPlayerEffects();
+    }
+
+    // ========== 速度购买相关方法 ==========
+
+    @Override
+    public void addPlayerSpeed(UUID uuid, String speedName) {
+        delegate.addPlayerSpeed(uuid, speedName);
+    }
+
+    @Override
+    public void removePlayerSpeed(UUID uuid, String speedName) {
+        delegate.removePlayerSpeed(uuid, speedName);
+    }
+
+    @Override
+    public Set<String> getPlayerSpeeds(UUID uuid) {
+        return delegate.getPlayerSpeeds(uuid);
+    }
+
+    @Override
+    public Map<UUID, Set<String>> getAllPlayerSpeeds() {
+        return delegate.getAllPlayerSpeeds();
+    }
+
+    // ========== 时间限制特效购买相关方法 ==========
+
+    @Override
+    public void setPlayerEffectTime(UUID uuid, String effectName, long endTime) {
+        delegate.setPlayerEffectTime(uuid, effectName, endTime);
+    }
+
+    @Override
+    public Long getPlayerEffectTime(UUID uuid, String effectName) {
+        return delegate.getPlayerEffectTime(uuid, effectName);
+    }
+
+    @Override
+    public Map<String, Long> getPlayerEffectTimes(UUID uuid) {
+        return delegate.getPlayerEffectTimes(uuid);
+    }
+
+    @Override
+    public void removePlayerEffectTime(UUID uuid, String effectName) {
+        delegate.removePlayerEffectTime(uuid, effectName);
+    }
+
+    @Override
+    public Map<UUID, Map<String, Long>> getAllPlayerEffectTimes() {
+        return delegate.getAllPlayerEffectTimes();
+    }
+
+    // ========== 时间限制速度购买相关方法 ==========
+
+    @Override
+    public void setPlayerSpeedTime(UUID uuid, String speedName, long endTime) {
+        delegate.setPlayerSpeedTime(uuid, speedName, endTime);
+    }
+
+    @Override
+    public Long getPlayerSpeedTime(UUID uuid, String speedName) {
+        return delegate.getPlayerSpeedTime(uuid, speedName);
+    }
+
+    @Override
+    public Map<String, Long> getPlayerSpeedTimes(UUID uuid) {
+        return delegate.getPlayerSpeedTimes(uuid);
+    }
+
+    @Override
+    public void removePlayerSpeedTime(UUID uuid, String speedName) {
+        delegate.removePlayerSpeedTime(uuid, speedName);
+    }
+
+    @Override
+    public Map<UUID, Map<String, Long>> getAllPlayerSpeedTimes() {
+        return delegate.getAllPlayerSpeedTimes();
     }
 }

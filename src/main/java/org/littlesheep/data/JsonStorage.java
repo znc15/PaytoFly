@@ -35,9 +35,11 @@ public class JsonStorage implements Storage {
     private final Map<UUID, Long> data = new ConcurrentHashMap<>();
     private final Map<UUID, Set<String>> playerEffects = new ConcurrentHashMap<>();
     private final Map<UUID, Set<String>> playerSpeeds = new ConcurrentHashMap<>();
+    private final Map<UUID, Map<String, Long>> playerEffectTimes = new ConcurrentHashMap<>();
+    private final Map<UUID, Map<String, Long>> playerSpeedTimes = new ConcurrentHashMap<>();
     
-    // 新版本数据存储（向后兼容）
-    private final Map<UUID, PlayerData> playerDataMap = new ConcurrentHashMap<>();
+    // 注释掉未使用的字段（保留用于未来扩展）
+    // private final Map<UUID, PlayerData> playerDataMap = new ConcurrentHashMap<>();
     
     // 批量写入相关
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
@@ -560,6 +562,142 @@ public class JsonStorage implements Storage {
             Map<UUID, Set<String>> result = new HashMap<>();
             for (Map.Entry<UUID, Set<String>> entry : playerSpeeds.entrySet()) {
                 result.put(entry.getKey(), new HashSet<>(entry.getValue()));
+            }
+            return result;
+        } finally {
+            dataLock.readLock().unlock();
+        }
+    }
+
+    // ============= 时间限制特效购买记录相关方法 =============
+    
+    @Override
+    public void setPlayerEffectTime(UUID uuid, String effectName, long endTime) {
+        dataLock.writeLock().lock();
+        try {
+            playerEffectTimes.computeIfAbsent(uuid, k -> new ConcurrentHashMap<>()).put(effectName, endTime);
+            needsSave.set(true);
+            writeOperations++;
+        } finally {
+            dataLock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public Long getPlayerEffectTime(UUID uuid, String effectName) {
+        dataLock.readLock().lock();
+        try {
+            Map<String, Long> effectTimes = playerEffectTimes.get(uuid);
+            return effectTimes != null ? effectTimes.get(effectName) : null;
+        } finally {
+            dataLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<String, Long> getPlayerEffectTimes(UUID uuid) {
+        dataLock.readLock().lock();
+        try {
+            Map<String, Long> effectTimes = playerEffectTimes.get(uuid);
+            return effectTimes != null ? new HashMap<>(effectTimes) : new HashMap<>();
+        } finally {
+            dataLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public void removePlayerEffectTime(UUID uuid, String effectName) {
+        dataLock.writeLock().lock();
+        try {
+            Map<String, Long> effectTimes = playerEffectTimes.get(uuid);
+            if (effectTimes != null) {
+                effectTimes.remove(effectName);
+                if (effectTimes.isEmpty()) {
+                    playerEffectTimes.remove(uuid);
+                }
+                needsSave.set(true);
+                writeOperations++;
+            }
+        } finally {
+            dataLock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<UUID, Map<String, Long>> getAllPlayerEffectTimes() {
+        dataLock.readLock().lock();
+        try {
+            Map<UUID, Map<String, Long>> result = new HashMap<>();
+            for (Map.Entry<UUID, Map<String, Long>> entry : playerEffectTimes.entrySet()) {
+                result.put(entry.getKey(), new HashMap<>(entry.getValue()));
+            }
+            return result;
+        } finally {
+            dataLock.readLock().unlock();
+        }
+    }
+
+    // ============= 时间限制速度购买记录相关方法 =============
+    
+    @Override
+    public void setPlayerSpeedTime(UUID uuid, String speedName, long endTime) {
+        dataLock.writeLock().lock();
+        try {
+            playerSpeedTimes.computeIfAbsent(uuid, k -> new ConcurrentHashMap<>()).put(speedName, endTime);
+            needsSave.set(true);
+            writeOperations++;
+        } finally {
+            dataLock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public Long getPlayerSpeedTime(UUID uuid, String speedName) {
+        dataLock.readLock().lock();
+        try {
+            Map<String, Long> speedTimes = playerSpeedTimes.get(uuid);
+            return speedTimes != null ? speedTimes.get(speedName) : null;
+        } finally {
+            dataLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<String, Long> getPlayerSpeedTimes(UUID uuid) {
+        dataLock.readLock().lock();
+        try {
+            Map<String, Long> speedTimes = playerSpeedTimes.get(uuid);
+            return speedTimes != null ? new HashMap<>(speedTimes) : new HashMap<>();
+        } finally {
+            dataLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public void removePlayerSpeedTime(UUID uuid, String speedName) {
+        dataLock.writeLock().lock();
+        try {
+            Map<String, Long> speedTimes = playerSpeedTimes.get(uuid);
+            if (speedTimes != null) {
+                speedTimes.remove(speedName);
+                if (speedTimes.isEmpty()) {
+                    playerSpeedTimes.remove(uuid);
+                }
+                needsSave.set(true);
+                writeOperations++;
+            }
+        } finally {
+            dataLock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<UUID, Map<String, Long>> getAllPlayerSpeedTimes() {
+        dataLock.readLock().lock();
+        try {
+            Map<UUID, Map<String, Long>> result = new HashMap<>();
+            for (Map.Entry<UUID, Map<String, Long>> entry : playerSpeedTimes.entrySet()) {
+                result.put(entry.getKey(), new HashMap<>(entry.getValue()));
             }
             return result;
         } finally {

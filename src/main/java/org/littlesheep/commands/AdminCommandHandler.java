@@ -5,6 +5,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.littlesheep.paytofly;
 import org.littlesheep.utils.DataValidator;
+import org.littlesheep.gui.EnhancedFlightShopGUI;
 import me.clip.placeholderapi.PlaceholderAPI;
 
 /**
@@ -25,7 +26,7 @@ public class AdminCommandHandler {
     public boolean handleAdminCommand(CommandSender sender, String[] args) {
         if (args.length == 0) {
             if (sender instanceof Player) {
-                plugin.getFlightShopGUI().openGUI((Player) sender);
+                plugin.getFlightShopGUI().openGUI((Player) sender, EnhancedFlightShopGUI.GUIType.MAIN);
             } else {
                 sender.sendMessage(prefix + plugin.getLang().getMessage("console-player-command"));
             }

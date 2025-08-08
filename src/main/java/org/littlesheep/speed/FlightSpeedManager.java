@@ -94,6 +94,7 @@ public class FlightSpeedManager {
      */
     public boolean setFlightSpeed(Player player, FlightSpeedLevel speedLevel) {
         if (!plugin.getConfig().getBoolean("flight-speed.enabled", true)) {
+            plugin.getLogger().info("飞行速度系统已禁用");
             return false;
         }
         
@@ -101,12 +102,14 @@ public class FlightSpeedManager {
         if (!hasSpeedPermission(player, speedLevel)) {
             player.sendMessage(plugin.getPrefix() + plugin.getLang().getMessage("speed-no-permission", 
                 "{speed}", speedLevel.getDisplayName()));
+            plugin.getLogger().info("玩家 " + player.getName() + " 没有速度权限: " + speedLevel.getName());
             return false;
         }
         
         // 检查是否在飞行
         if (!player.isFlying() && !player.getAllowFlight()) {
             player.sendMessage(plugin.getPrefix() + plugin.getLang().getMessage("speed-not-flying"));
+            plugin.getLogger().info("玩家 " + player.getName() + " 当前不在飞行状态");
             return false;
         }
         
@@ -130,10 +133,8 @@ public class FlightSpeedManager {
             "{speed}", speedLevel.getDisplayName(),
             "{value}", String.format("%.1f", targetSpeed)));
         
-        plugin.getLogger().info(plugin.getLang().getMessage("speed-set-log", 
-            "{player}", player.getName(),
-            "{speed}", speedLevel.getName(),
-            "{value}", String.valueOf(targetSpeed)));
+        plugin.getLogger().info("玩家 " + player.getName() + " 设置飞行速度: " + speedLevel.getName() + 
+            " (值: " + targetSpeed + ")");
         
         return true;
     }
@@ -195,7 +196,7 @@ public class FlightSpeedManager {
     }
     
     /**
-     * 检查玩家是否有特定速度等级的权限（权限或购买）
+     * 检查玩家是否有特定速度等级的权限（权限、永久购买或时间限制购买）
      */
     public boolean hasSpeedPermission(Player player, FlightSpeedLevel speedLevel) {
         // 默认免费速度
@@ -227,16 +228,24 @@ public class FlightSpeedManager {
             }
         }
         
-        // 检查是否已购买
+        // 检查是否已永久购买
         if (plugin.getConfig().getBoolean("flight-speed.purchase.enabled", true)) {
-            return plugin.getStorage().getPlayerSpeeds(player.getUniqueId()).contains(speedLevel.getName());
+            if (plugin.getStorage().getPlayerSpeeds(player.getUniqueId()).contains(speedLevel.getName())) {
+                return true;
+            }
+            
+            // 检查时间限制购买
+            Long endTime = plugin.getStorage().getPlayerSpeedTime(player.getUniqueId(), speedLevel.getName());
+            if (endTime != null && endTime > System.currentTimeMillis()) {
+                return true;
+            }
         }
         
         return false;
     }
     
     /**
-     * 购买速度等级
+     * 购买速度等级（永久）
      */
     public boolean purchaseSpeed(Player player, FlightSpeedLevel speedLevel) {
         if (!plugin.getConfig().getBoolean("flight-speed.purchase.enabled", true)) {
@@ -268,6 +277,69 @@ public class FlightSpeedManager {
             if (plugin.getEconomyManager().withdraw(player, price)) {
                 // 添加购买记录
                 plugin.getStorage().addPlayerSpeed(player.getUniqueId(), speedLevel.getName());
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * 购买速度等级（按时间）
+     */
+    public boolean purchaseSpeedTime(Player player, FlightSpeedLevel speedLevel, String timeUnit, int amount) {
+        if (!plugin.getConfig().getBoolean("flight-speed.purchase.enabled", true)) {
+            return false;
+        }
+        
+        if (speedLevel == FlightSpeedLevel.SLOW || speedLevel == FlightSpeedLevel.NORMAL) {
+            return true; // 免费速度
+        }
+        
+        // 获取基础价格和时间设置
+        double basePrice = plugin.getConfig().getDouble("flight-speed.purchase.prices." + speedLevel.getName(), 0.0);
+        if (basePrice <= 0) {
+            return false; // 价格无效
+        }
+        
+        // 计算按时间购买的价格和时长
+        long milliseconds = 0;
+        double priceMultiplier = 1.0;
+        
+        switch (timeUnit.toLowerCase()) {
+            case "hour":
+                milliseconds = amount * 60L * 60L * 1000L;
+                priceMultiplier = plugin.getConfig().getDouble("flight-speed.time-purchase.hour-multiplier", 0.1);
+                break;
+            case "day":
+                milliseconds = amount * 24L * 60L * 60L * 1000L;
+                priceMultiplier = plugin.getConfig().getDouble("flight-speed.time-purchase.day-multiplier", 2.0);
+                break;
+            case "week":
+                milliseconds = amount * 7L * 24L * 60L * 60L * 1000L;
+                priceMultiplier = plugin.getConfig().getDouble("flight-speed.time-purchase.week-multiplier", 12.0);
+                break;
+            default:
+                return false; // 不支持的时间单位
+        }
+        
+        double totalPrice = basePrice * priceMultiplier * amount;
+        
+        // 检查余额
+        if (plugin.getEconomyManager() != null && plugin.getEconomyManager().isInitialized()) {
+            if (!plugin.getEconomyManager().hasBalance(player, totalPrice)) {
+                return false; // 余额不足
+            }
+            
+            // 扣款
+            if (plugin.getEconomyManager().withdraw(player, totalPrice)) {
+                // 计算结束时间（如果已有时间限制，则延长）
+                Long currentEndTime = plugin.getStorage().getPlayerSpeedTime(player.getUniqueId(), speedLevel.getName());
+                long newEndTime = Math.max(currentEndTime != null ? currentEndTime : System.currentTimeMillis(), 
+                                         System.currentTimeMillis()) + milliseconds;
+                
+                // 添加时间限制购买记录
+                plugin.getStorage().setPlayerSpeedTime(player.getUniqueId(), speedLevel.getName(), newEndTime);
                 return true;
             }
         }
@@ -402,6 +474,15 @@ public class FlightSpeedManager {
         }
     }
     
+    /**
+     * 安全地设置玩家默认速度（仅在没有设置时）
+     */
+    public void setDefaultPlayerSpeed(Player player, FlightSpeedLevel speedLevel) {
+        if (!playerSpeeds.containsKey(player)) {
+            playerSpeeds.put(player, speedLevel);
+        }
+    }
+
     /**
      * 清理玩家数据
      */

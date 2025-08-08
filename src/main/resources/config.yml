@@ -158,7 +158,7 @@ flight-effects:
   purchase:
     # 是否启用特效购买系统
     enabled: true
-    # 各特效的价格
+    # 各特效的价格（永久购买）
     prices:
       basic: 100.0      # 基础特效
       rainbow: 500.0    # 彩虹特效
@@ -166,6 +166,14 @@ flight-effects:
       fire: 1200.0      # 火焰特效
       magic: 2000.0     # 魔法特效
       dragon: 5000.0    # 龙息特效
+  # 时间购买设置
+  time-purchase:
+    # 是否启用按时间购买特效
+    enabled: true
+    # 时间购买价格倍数（基于永久价格）
+    hour-multiplier: 0.1    # 每小时价格倍数
+    day-multiplier: 2.0     # 每天价格倍数
+    week-multiplier: 12.0   # 每周价格倍数
 
 # 飞行速度控制设置
 flight-speed:
@@ -191,7 +199,7 @@ flight-speed:
   purchase:
     # 是否启用速度购买系统
     enabled: true
-    # 各速度等级的价格
+    # 各速度等级的价格（永久购买）
     prices:
       slow: 50.0        # 缓慢速度
       normal: 0.0       # 普通速度（免费）
@@ -200,6 +208,14 @@ flight-speed:
       super_fast: 1500.0 # 超速
       light_speed: 3000.0 # 光速
       warp_speed: 8000.0  # 曲速
+  # 时间购买设置
+  time-purchase:
+    # 是否启用按时间购买速度
+    enabled: true
+    # 时间购买价格倍数（基于永久价格）
+    hour-multiplier: 0.1    # 每小时价格倍数
+    day-multiplier: 2.0     # 每天价格倍数
+    week-multiplier: 12.0   # 每周价格倍数
 
 # MHDF-Tools 兼容设置
 mhdf-tools:

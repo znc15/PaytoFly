@@ -167,6 +167,18 @@ messages:
   speed-purchase-success: "&aSuccessfully purchased speed {speed} &afor &6{price} &acoins!"
   speed-purchase-failed: "&cPurchase failed! Insufficient balance or system error"
 
+  # GUI enhanced features
+  gui-shop-main: "&aOpened main shop interface"
+  gui-shop-effects: "&dOpened effects shop interface"
+  gui-shop-speeds: "&aOpened speed shop interface"
+  gui-navigation-back: "&7Click to go back"
+  gui-item-glow: "&e✨ Owned"
+  gui-price-display: "&6Price: {price} coins"
+  gui-owned-item: "&a✓ Owned"
+  gui-free-item: "&a✓ Free"
+  gui-buy-hint: "&c➤ Click to buy"
+  gui-unavailable: "&cUnavailable"
+
   # MHDF-Tools Sync
   mhdf-sync-success: "&aSuccessfully synced flight permissions for player {player} to MHDF-Tools"
   mhdf-sync-failed: "&cFailed to sync MHDF-Tools flight permissions: {error}"
