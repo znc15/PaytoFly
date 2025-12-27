@@ -164,23 +164,26 @@ public class WorldChangeListener implements Listener {
         final Player player = event.getPlayer();
         final World fromWorld = event.getFrom().getWorld();
         final World toWorld = event.getTo().getWorld();
-        
-        // 如果是跨世界传送，WorldChangeListener已经处理，不需要重复处理
+
+        //跨世界修复传送延迟
+        final long delayTicks;
         if (fromWorld != null && toWorld != null && !fromWorld.equals(toWorld)) {
-            return;
+            delayTicks = 10L;
+        } else {
+            delayTicks = 3L;
         }
-        
+
         // 延迟几tick检查飞行状态，确保传送完成
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             // 如果玩家已经离线，跳过处理
             if (!player.isOnline()) {
                 return;
             }
-            
+
             checkAndRestoreFlightStatus(player);
-        }, 3L); // 3 ticks = 0.15 seconds
+        }, delayTicks);
     }
-    
+
     /**
      * 检查并恢复玩家的飞行状态
      * @param player 玩家
